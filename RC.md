@@ -1344,7 +1344,7 @@ In a random access protocol, a transmitting node always transmits at the full ra
 When there is a collision, each node involved in the collision repeatedly retransmits its frame after a random amount of time until its frame gets through without a collision.
 Because the random delays are independently chosen, it is possible that one of the nodes will pick a delay that is sufficiently less than the delays of the other colliding nodes and will therefore be able to sneak its frame into the channel without a collision.
 
-### Slotted ALOHA
+#### Slotted ALOHA
 
 In our description of slotted ALOHA, we assume the following:
 - All frames consist of exactly $L$ bits.
@@ -1364,7 +1364,7 @@ The slots in which exactly one node transmits is said to be a **successful slot*
 The **efficiency** of a slotted multiple access protocol is defined to be the long-run fraction of successful slots in the case when there are a large number of active nodes, each always having a large number of frames to send.
 For a slotted ALOHA protocol, we can calculate the efficiency to be, as the number of nodes approaches infinity $\frac{1}{e}$, which is approximately 37%.
 
-### ALOHA
+#### ALOHA
 
 The slotted ALOHA protocol required that all nodes synchronize their transmissions to start at the beginning of a slot.
 The first ALOHA protocol was actually an unslotted, fully decentralized protocol.
@@ -1375,7 +1375,7 @@ After this wait, it then transmits the frame with probability $p$, or waits (rem
 
 Using the same assumptions as the slotted case, the maximum efficiency for pure ALOHA can be found to be only $\frac{1}{2e}$, exactly half that of the slotted ALOHA.
 
-### Carrier Sense Multiple Access (CSMA)
+#### Carrier Sense Multiple Access (CSMA)
 
 Carrier Sense Multiple Access (CSMA) and CSMA with collision detection (CSMA/CD) protocols embody two rules:
 - **Carrier Sensing**: a node listens to the channel before transmitting. If a frame from another node is currently being transmitted into the channel, a node then waits until it detects no transmissions for a short amount of time and then begins transmission.
@@ -1383,7 +1383,7 @@ Carrier Sense Multiple Access (CSMA) and CSMA with collision detection (CSMA/CD)
 
 The end-to-end **channel propagation delay** of a broadcast channel - the time it takes for a signal to propagate from one of the nodes to another - will play a crucial role in determining its performance.
 
-#### Carrier Sense Multiple Access with Collision Detection (CSMA/CD)
+**Carrier Sense Multiple Access with Collision Detection (CSMA/CD)**
 
 // TODO
 
@@ -1428,3 +1428,91 @@ All of the Ethernet technologies provide unreliable and connectionless service t
 It uses the CSMA/CD multiple access protocol with exponential binary backoff.
 
 It is worth noting that Ethernet is not a single protocol standard but rather a set of technologies that come in many flavors.
+
+## Link-Layer Switches
+
+The role of the **switch** is to receive incoming link-layer frames and forward them onto outgoing links.
+The switch does this in a **transparent** way - the sender and receiver of a message are always unaware that it is intercepted by a switch.  
+Switches have a forwarding table whose entries contain:
+- a MAC address;
+- the switch interface that leads towards that MAC address;
+- the time at which the entry was placed in the table.
+
+Whenever it receives a packet with a certain destination MAC address and from the interface $x$, it makes the following decision:
+- If there is no entry in the table with the given address, the switch broadcasts a copy of the frame through all it's interfaces, except $x$;
+- If there is an entry with the given address, the switch forwards the frame through the corresponding interface, except if that interface is $x$, in which case the switch discards the frame.
+
+The forwarding table is built automatically, dynamically, and autonomously.
+In other words, switches are **self-learning**.
+This capability is accomplished as follows:
+- The switch table is initially empty.
+- For each incoming frame received on an interface, the switch stores in its table (1) the MAC address in the frame’s source address field, (2) the interface from which the frame arrived, and (3) the current time.
+- The switch deletes an address in the table if no frames are received with that address as the source address after some period of time (the **aging time**).
+
+### Switches vs. Routers
+
+Switches:
+- pros:
+  - plug-and-play;
+  - high forwarding rate, since they only need to process frames up to layer 2;
+- cons:
+  - topology restricted to spanning tree, in order to prevent cycling of frames;
+  - a large switched network would require large ARP tables and generate substantial ARP traffic and processing;
+  - susceptible to broadcast storms.
+
+Routers:
+- pros:
+  - because network addressing is often hierarchical, packets do not normally cycle through routers even when the network has redundant paths;
+  - provide firewall protection against layer-2 broadcast storms.
+- cons:
+  - are not plug-and-play;
+  - have a larger per-packet processing time than switches.
+
+Switches suffice for small networks, as they localize traffic and increase aggregate throughput without requiring any configuration of IP addresses.
+But larger networks consisting of thousands of hosts typically include routers within the network, as they provide a more robust isolation of traffic, control broadcast storms, and use more “intelligent” routes among the hosts in the network.
+
+## Virtual Local Area Networks (VLANs)
+
+Switched LANs have some drawbacks:
+- **Lack of traffic isolation**;
+- **Inefficient use of switches**;
+- **Managing users**.
+
+These problems are solved by using a **Virtual local area network (VLAN)**.
+VLANs allow multiple virtual local area networks to be defined over a single physical local area network infrastructure.
+In a port-based VLAN, the switch’s ports (interfaces) are divided into groups by the network manager.
+Each group constitutes a VLAN, with the ports in each VLAN forming a broadcast domain
+
+A VLAN can span several physical switches as long as they are connected by **trunk links**.
+In networks with a **VLAN trunking** solution, a special port on each switch is configured as a trunk port to interconnect VLAN switches.
+The trunk port belongs to all VLANs, and frames sent to any VLAN are forwarded over the trunk link to the other switch.
+In order to allow a switch to know the VLAN a frame comes from, the IEEE has defined an extended Ethernet frame format, 802.1Q, for frames crossing a VLAN trunk.
+The 802.1Q frame consists of the standard Ethernet frame with a four-byte **VLAN tag** added into the header that carries the identity of the VLAN to which the frame belongs.
+The VLAN tag itself consists of:
+- a 2-byte Tag Protocol Identifier (TPID) field;
+- a 2-byte Tag Control Information field that contains a 12-bit VLAN identifier field, and a 3-bit priority field.
+
+![Original Ethernet frame (top), 802.1Q-tagged Ethernet VLAN frame (below)](./figs/ethernet_frame.png)
+
+### Spanning Tree Protocols
+
+Networks often introduce redundant links between switches to overcome the failure or congestion of links.
+These connections, however, introduce physical loops into the network.
+These loops are problematic since switches flood traffic out all ports when the destination is unknown.
+Without any mechanism, these frames will loop forever.
+
+This is solved by allowing physical loops, but creating loop free logical topology, through a **spanning-tree protocol**.
+The Spanning-Tree Protocol establishes a root node, called the **root bridge**.
+Furthermore, every node (in this context we refer to nodes as **bridges**) as unique 8 byte **bridge ID**.
+For each bridge, there is **root port** which is responsible for the reception/transmission of frames from/to the root bridge.
+Similarly, we define a **designated bridge** and **designated port** as the bridge and port (respectively) that are responsible for sending frames from a LAN to the root bridge and vice-versa).
+Each bridge has an associated **Root Path Cost**, equal to the sum of the costs from the ports that transmit frames towards the root bridge in the least cost path to the root bridge.
+The root port (for a bridge) and the designated port (for a LAN) are the ports that provide the best path to the root.
+The **active ports** in a bridge are the root port and the designated ports.
+The remaining ports stay inactive (blocked).
+
+The Spanning Tree Protocol requires network devices to exchange messages to detect bridging loops.
+The message that a switch/bridge sends, allowing the formation of a loop free logical topology, is called a **Bridge Protocol Data Unit (BPDU)**.
+This ensures that if an active path or device fails, a new spanning tree can be calculated.
+
+// TODO
