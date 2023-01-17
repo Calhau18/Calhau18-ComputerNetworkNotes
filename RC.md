@@ -497,9 +497,12 @@ The primary goals for HTTP/2 are:
 HTTP/2 does not change HTTP methods, status codes, URLs, or header fields.
 Instead, HTTP/2 changes how the data is formatted and transported between the client and server.
 
-!!! TODO !!!
-- HOL problem
-- HTTP2 solution for HOL
+HTTP/2 also presents a solution to the **Head of Line (HOL) blocking problem**.
+The HOL blocking problem refers to the problem of delaying small objects in an HTML base page because they are referenced in such page after some much larger object, that is taking a long time passing through a bottleneck link.
+
+The typical solution for this problem in HTTP/1.1 is to open multiple parallel TCP connections, thereby having objects in the same web page sent in parallel to the browser.
+HTTP/2, however, presents a better solution by breaking each message into small frames, and interleaving the request and response messages on the same TCP connection.
+The ability to break down an HTTP message into independent frames, interleave them, and then reassemble them on the other end is the single most important enhancement of HTTP/2.
 
 ## Eletronic Mail in the Internet
 
@@ -846,14 +849,33 @@ The value $N$ is called the **window size**.
 
 #### Go-Back-N (GBN)
 
-[TODO]
+In a **Go-Back-N (GBN)** protocol, the sender is allowed to transmit multiple packets (when available) without waiting for an acknowledgment, but is constrained to have no more than some maximum allowable number, N, of unacknowledged packets in the pipeline.  
+The receiver sends **cumulative ACKs**: if it sends an ACK with sequence number $n$, it has received every byte up to the $n$-th one.  
+The sender further has a timer for the oldest unacked packet.
+When the timer expires, it retransmits every unacked packet.
 
 ![gbn: sending side](./figs/gbn_sender_fsm.png)
 ![gbn: receiving side](./figs/gbn_receiver_fsm.png)
 
+In our GBN protocol, the receiver discards out-of-order packets.
+This makes sense as, in the GBN protocol, if a packet is lost, every packet after it will be retransmitted, therefore making buffering useless.  
+This of course has the downside of consuming more of the network's bandwidth.
+
 #### Selective Repeat
 
-[TODO]
+**Selective repeat** protocols avoid unnecessary retransmissions by having the sender retransmit only those packets that it suspects were received in error
+This individual, as-needed, retransmission will require that the receiver individually acknowledge correctly received packets.
+A window size of N will again be used to limit the number of outstanding, unacknowledged packets in the pipeline.
+However, unlike GBN, the sender will have already received ACKs for some of the packets in the window.
+
+The SR receiver will acknowledge a correctly received packet whether or not it is in order.
+Out-of-order packets are buffered until any missing packets are received, at which point a batch of packets can be delivered in order to the upper layer.
+
+![Selective Repeat receiver and sender events and actions](./figs/selective_repeat.png)
+
+It is important to note that the receiver reacknowledges (rather than ignores) already received packets with certain sequence numbers below the current window base.
+This is because the sender and receiver will not always have an identical view of what has been received correctly and what has not.
+Particularly, if the range of numbers allowed for the sequence numbers and window size are not chosen carefully, it might happen that the receiver is not able to unambiguously decide if it is receiving a new message or an already sent one.
 
 ## Connection Oriented Transport: TCP
 
@@ -954,7 +976,12 @@ In the case that three duplicate ACKs are received, the TCP sender performs a **
 
 #### Go-Back-N or Selective Repeat?
 
-// TODO
+TCP acknowledgment is cumulative, thus making it similar to GBN.
+Nevertheless, it does buffer out-of-order segments and does not need retransmission of all packets that succeed one that didn't reach the sender.
+
+A proposed modification to TCP, the so-called selective acknowledgment , allows a TCP receiver to acknowledge out-of-order segments selectively rather than just cumulatively acknowledging the last correctly received, in-order segment.
+
+In the end, TCP’s error-recovery mechanism is probably best categorized as a hybrid of GBN and SR protocols.
 
 ### Flow Control
 
