@@ -969,7 +969,120 @@ It further sends a similar segment with the FIN bit set, to which the closure in
 
 ## Principles of Congestion Control
 
+When thinking about congestion control, one should be aware of:
+- the throughput of communication can never exceed the capacity at each point in the route;
+- as the throughput reaches capacity, the delay of messages will increase indefinitely, as packets get stuck in long queues;
+- loss and consequent retransmission of packets further decreases the effective throughput - namely, unnecessary duplications (due to delays higher than the timeout value) are particularly harmful;
+- a single point of failure (say, a single router performing high loads of work) may put to waste the rest of the network's work.
+
+There are two broad approaches to congestion control:
+- **End-to-end congestion control**: 
+  The network layer provides no explicit support to the transport layer for congestion-control purposes.
+  In this approach, congestion measures must be inferred from end-system observed loss and delay.
+- **Network-assisted congestion control**:
+  Routers provide explicit feedback to the sender and/or receiver regarding the congestion state of the network.
+
 ## TCP Congestion Control
+
+### Classic TCP Congestion Control
+
+TCP limits a sender's rate by having a variable, the **congestion window** (`cwnd`), that limits the amount of unacknowledged bytes that a client might send into the network.
+This limits the client's sending rate at $\frac{\text{cwnd}}{\text{RTT}}$.
+The value of `cwnd` is adjusted by the sender in function of the perceived network congestion.
+
+A sender may get a sense of a network's congestion by the amount of sent packets that are not acknowledged, or acknowledged after a timeout.
+
+TCP uses acknowledgments to trigger (or clock) its increase in congestion window size.
+Therefore, TCP is said to be **self-clocking**.
+
+TCP uses the following guiding principles:
+- A lost segment implies congestion, and hence, the TCP sender’s rate should be decreased when a segment is lost;
+- An acknowledged segment indicates that the network is delivering the sender’s segments to the receiver, and hence, the sender’s rate can be increased.
+- Bandwidth probing: The TCP sender increases its transmission rate to probe for the rate that at which congestion onset begins, backs off from that rate, and then to begins probing again to see if the congestion onset rate has changed.
+
+#### Slow Start
+
+When a TCP connection begins, the value of `cwnd` is typically initialized to a small value of 1 MSS, resulting in an initial sending rate of roughly $\text{MSS}/\text{RTT}$.
+Since the available bandwidth to the TCP sender may be much larger than this, the TCP sender would like to find the amount of available bandwidth quickly.
+Thus, in the slow-start state, the value of `cwnd` begins at 1 MSS and increases by 1 MSS every time a transmitted segment is first acknowledged.
+This process results in a doubling of the sending rate every RTT.
+
+When the sender registers a loss event, it cannot keep doubling the congestion window value:
+- If the sender registers a *timeout*, it restarts the slow start process, setting `cwnd` to 1.
+  It also sets the value of a second state variable, ssthresh (short- hand for “slow start threshold”) to `cwnd/2`.
+- If the sender registers a *triple ACK*, it moves into congestion avoidance mode.
+
+#### Congestion Avoidance
+
+A common approach for congestion avoidance is for the TCP sender to increase `cwnd` by MSS bytes
+This linear increase stops in the same way as the slow-start phase.
+However, for triple-ACK loss events, it does not remain in congestion avoidance mode: it sets `cwnd` and `ssthresh` to `cwnd/2` and moves into fast-recovery state.
+
+#### Fast Recovery
+
+In fast recovery, the value of `cwnd` is increased by 1 MSS for every duplicate ACK received for the missing segment that caused TCP to enter the fast-recovery state.
+Eventually, when an ACK arrives for the missing segment, TCP enters the congestion-avoidance state after deflating `cwnd`.
+If a timeout event occurs, fast recovery transitions to the slow-start state after performing the same actions as in slow start and congestion avoidance: The value of `cwnd` is set to 1 MSS, and the value of `ssthresh` is set to half the value of `cwnd` when the loss event occurred.
+
+Fast recovery is a recommended, but not required, component of TCP.
+
+#### Retrospective
+
+Given the aforementioned, we can represent TCP's congestion control algorithm as a finite state machine:
+
+![FSM description of TCP congestion control](./figs/tcp_congestion_control_fsm.png)
+
+Ignoring the initial slow-start period, consists of linear (additive) increase in `cwnd` and then a halving (multiplicative decrease) of `cwnd` on a triple duplicate-ACK event.
+For this reason, TCP congestion control is often referred to as an **additive-increase, multiplicative-decrease (AIMD)** form of congestion control.
+
+#### TCP Cubic
+
+TCP Cubic is a response to the observation that, assuming that a network's congestion remains relatively stable, halving the congestion window and starting cautiously probing for the congestion threshold might not be the best way of probing.
+TCP Cubic thus proposes an algorithm that increases the value of `cwnd` faster when it is far from the sending rate at which congestion loss was last detected, and slower when those values are not too far apart.
+
+### Network-Assisted TCP Congestion Avoidance
+
+#### Explicit Congestion Notification
+
+**Explicit Congestion Notification (ECN)** is the form of network-assisted congestion control performed within the Internet, which involves both TCP and IP.
+At the network layer, two bits in the Type of Service field of the IP datagram header are used for ECN.
+
+#### Delay-based Congestion Control
+
+In TCP Vegas, the sender measures the RTT of the source-to-destination path for all acknowledged packets.
+Let $RTT_{min}$ be the minimum of these measurements at a sender - the throughput that would be experienced in a near uncongested network.
+In such a network, the throughput would be $\frac{\text{cwnd}}{RTT_{min}}$.
+This version of TCP thus opts to increase `cwnd` linearly when the measured throughput is close to uncongested throughput, and decrease it linearly when it is far below it.
+
+TCP Vegas operates under the intuition that TCP senders should "Keep the pipe just full, but no fuller".
+
+#### Fairness
+
+We say a congestion control mechanism is **fiar** if the average transmission rate of each of $K$ different connections is approximately $R/K$ ($R$ is the transmission rate of the network's bottleneck link).
+In an idealized scenario where we assume there is no UDP traffic and every TCP connection is sending a big file, it can be proven that TCP does converge to a fair state. 
+
+In practice, these conditions are typically not met, and client-server applications can thus obtain very unequal portions of link bandwidth.
+In particular, it has been shown that when multiple connections share a common bottleneck, those sessions with a smaller RTT are able to grab the available bandwidth at that link more quickly as it becomes free and thus will enjoy higher throughput.
+
+Furthermore, UDP does not employ any kind of congestion control mechanism, thus not cooperating with TCP connections in order to maintain an uncongested network.
+A number of congestion-control mechanisms have been proposed for the Internet that prevent UDP traffic from bringing the Internet’s throughput to a grinding halt
+
+Finally, even if UDP was to act perfectly fair, the fairness problem would still be unsolved, as a single process could start several TCP connections in order to use as much throughput as possible.
+
+## QUIC: Quick UDP Internet Connections
+
+QUIC is a new application-layer protocol designed from the ground up to improve the performance of transport-layer services for secure HTTP.
+QUIC, using UDP as its underlying transport-layer protocol, is designed to interface above specifically to a simplified but evolved version of HTTP/2. 
+In the near future, HTTP/3 will natively incorporate QUIC.
+Some of its major features include:
+- **Connection-Oriented and Secure**;
+- **Streams**: 
+  Multiple application-level “streams” multiplexed over single QUIC connection
+  A stream is an abstraction for the reliable, in-order bi-directional delivery of data between two QUIC endpoints.
+- **Reliable, TCP-friendly congestion-controlled data transfer**
+
+By incorporating so many features, QUIC allow to establish reliable, congestion controlled, authenticated, and secure connections in just one shake, in contrast with having one TCP handshake for reliability and congestion control, and a TLS handshake for authentication and security.
+QUIC thus is able to establish connections much faster.
 
 # Chapter 4: The Network Layer
 
