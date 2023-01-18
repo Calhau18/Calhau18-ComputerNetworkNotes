@@ -3,73 +3,87 @@
 ## What Is the Internet?
 
 The **Internet** is a computer network that interconnects billions of computing devices throughout the world.
-When one **end system** has data to send to another end system, the sending end system segments the data and adds header bytes to each segment. The resulting packages of information, known as **packets** in the jargon of computer networks, are then sent through the network to the destination end system, where they are reassembled into the original data. A packet switch takes a packet arriving on one of its incoming communication the original data.
-A packet switch takes a packet arriving on one of its incoming communication
-links and forwards that packet on one of its outgoing communication links. Packet switches come in many shapes and flavors, but the two most prominent types in today’s Internet are **routers** and **link-layer** switches.
-The sequence of communication links and packet switches traversed by a packet from the sending end system to the receiving end system is known as a **route** or **path** through the network.
+In networking jargon, every device that runs applications that use the Internet is called an **end system**.
 
-End systems access the Internet through **Internet Service Providers (ISPs)**. The Internet is all about connecting end systems to each other, so the ISPs that provide access to end systems must also be interconnected. These lower- tier ISPs are thus interconnected through national and international upper-tier ISPs and these upper-tier ISPs are connected directly to each other. An upper-tier ISP consists of high-speed routers interconnected with high-speed fiber-optic links.
+The Internet is able to connect so many devices by having a structure that is able to span/reach every single one of them.
+Thus, if an end system A wants to reach another end system B, it only needs to send its message to the Internet, which will then be responsible for delivering the message to B.
+In internet jargon, a package of information sent through the internet is generally referred to as a **packet**.
 
-End systems, packet switches, and other pieces of the Internet run **protocols** that control the sending and receiving of information within the Internet. The **Transmission Control Protocol (TCP)** and the **Internet Protocol (IP)** are two of the most impor- tant protocols in the Internet. The IP protocol specifies the format of the packets that are sent and received among routers and end systems. The Internet’s principal protocols are collectively known as **TCP/IP**.
-
-**Protocol (definition)**: A protocol defines the format and the order of messages exchanged between two or more communicating entities, as well as the actions taken on the transmission and/or receipt of a message or other event.
+Because of its inherent complexity, the rules that dictate how the Internet works must be very well standardized.
+Therefore, the Internet is very reliant on **protocols**, which is defined below:
+```
+A protocol defines the format and the order of messages exchanged between two or
+more communicating entities, as well as the actions taken on the transmission 
+and/or receipt of a message or other event.
+```
 
 End systems attached to the Internet provide a **socket interface** that specifies how a program running on one end system asks the Internet infrastructure to deliver data to a specific destination program running on another end system.
+
+We can differentiate between two main sectors of the Internet:
+The **network edge** establishes an interface between end systems wanting to use the Internet and the **network core**.
+The network core is then responsible for forwarding a packet from a sending to a receiving end system.
 
 ## The Network Edge
 
 ### Access Network
 
-**Access network**: the network that connects an end system to the first router (also known as the "edge router").
+An **access network** is the network that connects an end system to the first router (also known as the "edge router") on a route to a receiving end system.
+There are several types of access networks:
 
 - **Home Access**: DSL, Cable, FTTH, and 5G Fixed Wireless
 
   - **Digital Subscriber Line (DSL)**
 
-    A residence typically obtains DSL Internet access from the same local telephone company that provides its wired local phone access. The home's DSL modem takes digital data and translates it to high-frequency tones for transmission over telephone wires to the **central office (CO)** of the telephone company (telco). The residential telephone line carries both data and traditional telephone signals simultaneously, which are encoded at different frequencies:
+    A residence typically obtains DSL Internet access from the same local telephone company that provides its wired local phone access.
 
-      - A high-speed downstream channel, in the 50 kHz to 1 MHz band
-      - A medium-speed upstream channel, in the 4 kHz to 50 kHz band
-      - An ordinary two-way telephone channel, in the 0 to 4 kHz band
+    A home has a **DSL modem** that takes digital data and translates it for transmission over telephone wires to the **central office (CO)** of a telephone company (telco).
+    The residential telephone line carries both data and traditional telephone signals simultaneously, which are encoded at different frequencies.
+    At the CO, the analog signals are translated back into digital format at a **Digital Subscriber Line Access Multiplexer (DSLAM)**, and sent into the Internet.
 
-    At the CO, the analog signals are translated back into digital format at the Digital Subscriber Line Access Multiplexer (DSLAM), and sent into the Internet.
-
-    The DSL standards define multiple transmission rates, namely downstream and upstream. These are actually different, which leads us to call the access **asymmetric**.
+    The DSL standards define multiple transmission rates, namely downstream and upstream. 
+    These are different, which leads us to call the access **asymmetric**.
     The maximum rates are limited by the distance between the home and the CO.
 
   - **Cable**
 
-    Cable Internet access makes use of the cable television company’s existing cable television infrastructure.
-    Fiber optics connect the cable head end to neighborhood-level junctions, from which traditional coaxial cable is then used to reach individual houses. Because both fiber and coaxial cable are employed in this system, it is often referred to as **hybrid fiber coax (HFC)**.
+    Cable Internet access makes use of a cable television company’s existing infrastructure.
+    Fiber optics connect the cable head end to neighborhood-level junctions, from which traditional coaxial cable is then used to reach individual houses.
+    Because both fiber and coaxial cable are employed in this system, it is often referred to as **hybrid fiber coax (HFC)**.
 
-    Cable internet access requires special modems, called **cable modems**. As with a DSL modem, the cable modem is typically an external device and connects to the home PC through an Ethernet port. 
-    At the cable head end, the **cable modem termination system (CMTS)** serves a similar function as the DSL network’s DSLAM, turning the analog signal sent from the cable modems in many downstream homes back into digital format.
-    Cable modems divide the HFC network into two channels, a downstream and an upstream channel. As with DSL, access is typically asymmetric, with the downstream channel typically allocated a higher transmission rate than the upstream channel.
+    Cable internet access requires special modems, called **cable modems**.
+    As with a DSL modem, the cable modem is typically an external device and connects to the home PC through an Ethernet port. 
+    At the cable head end, the **cable modem termination system (CMTS)** turns the analog signal sent from the cable modems in many downstream homes back into digital format.
+    Cable modems divide the HFC network into two channels, a downstream and an upstream channel. 
+    Access is typically asymmetric, with the downstream channel typically allocated a higher transmission rate than the upstream channel.
 
-    One important characteristic of cable Internet access is that it is a shared broadcast medium. In particular, every packet sent by the head end travels downstream on every link to every home and every packet sent by a home travels on the upstream channel to the head end. For this reason, if several users are simultaneously downloading a video file on the downstream channel, the actual rate at which each user receives its video file will be significantly lower than the aggregate cable downstream rate. On the other hand, if there are only a few active users and they are all Web surfing, then each of the users may actually receive Web pages at the full cable downstream rate, because the users will rarely request a Web page at exactly the same time. Because the upstream channel is also shared, a distributed multiple access
+    One important characteristic of cable Internet access is that it is a shared **broadcast medium**: every packet sent by the head end travels downstream to every home and vice-versa.
+    For this reason, if several users are simultaneously downloading a video file on the downstream channel, the actual rate at which each user receives its video file will be significantly lower than the aggregate cable downstream rate.
+    On the other hand, if there are only a few active users and they are all Web surfing, then each of the users may actually receive Web pages at the full cable downstream rate, because the users will rarely request a Web page at exactly the same time.
+    Because the upstream channel is also shared, a distributed multiple access protocol is needed to coordinate transmissions and avoid collisions.
 
   - **Fiber To The Home (FTTH)**
 
-    FTTH is an up-and-coming technology that provides even higher speed than the aforementioned methods. 
-    The concept is simple - provide an optical fiber paht from the CO directly to the home. FTTH can potentially provide Internet access rates in the gigabits per second range.
-    The simplest optical distribution network is called direct fiber, with one fiber leaving the CO for each home. More commonly, each fiber leaving the central office is actually shared by many homes; it is not until the fiber gets relatively close to the homes that it is split into individual customer-specific fibers.
+    FTTH is an up-and-coming technology that provides even higher speed than the aforementioned methods by providing an optical fiber path from the CO directly to the home. 
+    The simplest optical distribution network is called direct fiber, with one fiber leaving the CO for each home.
+    More commonly, each fiber leaving the central office is actually shared by many homes; it is not until the fiber gets relatively close to the homes that it is split into individual customer-specific fibers.
 
   - **5G fixed wireless**
     
-    5G fixed wireless is beginning to be deployed and promises high-speed residential access, but will do so without installing costly and failur-prone abling from the telco's CO to the home. 
-    With 5G fixed wireless, using beam-forming technology, data is sent wirelessly from a provider’s base station to the a modem in the home. A WiFi wireless router is connected to the modem, similar to how a WiFi wireless router is connected to a cable or DSL modem.
+    5G fixed wireless is beginning to be deployed and promises high-speed residential access, without the downside of having to install costly and failure-prone cabling from the telco's CO to the home. 
+    With 5G fixed wireless, using beam-forming technology, data is sent wirelessly from a provider's base station to a modem in the home, connected to a WiFi wireless router.
 
 - **Enterprise (and Home) Access**: Ethernet and WiFi
 
-  On corporate and university campuses, and increasingly in home settings, a **local area network (LAN)** is used to connect an end system to the edge router. Although there are many types of LAN technologies, Ethernet is by far the most prevalent access technology in corporate, university, and home networks. As shown in
-  Ethernet users use twisted-pair copper wire to connect to an Ethernet switch. The Ethernet switch, or a network of such interconnected switches, is then in turn connected into the larger Internet.
-  In a wireless LAN setting, wireless users transmit/receive packets to/from an **access point** that is connected into the enterprise’s network.
-  Wireless LAN access based on IEEE 802.11 technology, more colloquially known as WiFi, is now just about everywhere.
+  On corporate and university campuses, and increasingly in home settings, a **local area network (LAN)** is used to connect an end system to the edge router.
+  Ethernet is by far the most prevalent access technology, using twisted-pair copper wire to connect users to an Ethernet switch.
+  The Ethernet switch, or a network of such interconnected switches, is then connected into the larger Internet.
 
 - **Wide-Area Wireless Access**: 3G and LTE 4G and 5G
 
-  Mobile devices employ the same wireless infrastructure used for cellular telephony to send/receive packets through a base station that is operated by a cellular network provider. Unlike WiFi, a user need only be within a few tens of kilometers (as opposed to a few tens of meters) of the base station.
-  Telecommunications companies have made enormous investments in so-called fourth-generation (4G) wireless, which provides real-world download speeds of up to 60 Mbps. But even higher-speed wide-area access technologies — a fifth-generation (5G) of wide-area wireless networks—are already being deployed.
+  Mobile devices employ the same wireless infrastructure used for cellular telephony to send/receive packets through a base station that is operated by a cellular network provider.
+  Unlike WiFi, a user need only be within a few tens of kilometers (as opposed to a few tens of meters) of the base station.
+  Telecommunications companies have made enormous investments in so-called fourth-generation (4G) wireless, which provides real-world download speeds of up to 60 Mbps.
+  But even higher-speed wide-area access technologies - a fifth-generation (5G) of wide-area wireless networks - are already being deployed.
 
 ### Physical Media
 
@@ -84,11 +98,13 @@ Physical media fall into two categories: **guided/wired media** - waves are guid
 
 - **Coaxial Cable**
 
-  Like twisted pair, coaxial cable consists of two copper conductors, but the two conductors are concentric rather than parallel. With this construction and special insulation and shielding, coaxial cable can achieve high data transmission rates.
+  Like twisted pair, coaxial cable consists of two copper conductors, but the two conductors are concentric rather than parallel.
+  With this construction and special insulation and shielding, coaxial cable can achieve high data transmission rates.
 
 - **Fiber Optics**
 
-  An optical fiber is a thin, flexible medium that conducts pulses of light, with each pulse representing a bit. A single optical fiber can support tremendous bit rates, up to tens or even hundreds of gigabits per second. 
+  An optical fiber is a thin, flexible medium that conducts pulses of light, with each pulse representing a bit.
+  A single optical fiber can support tremendous bit rates. 
   They are immune to electromagnetic interference, have very low signal attenuation up to 100 kilometers, and are very hard to tap. 
 
   These characteristics have made fiber optics the preferred long-haul guided transmission media, particularly for overseas links.
@@ -96,32 +112,39 @@ Physical media fall into two categories: **guided/wired media** - waves are guid
 
 - **Terrestrial Radio Channels**
 
-  Radio channels carry signals in the electromagnetic spectrum. They are an attractive medium because they require no physical wire to be installed, can penetrate walls, provide connectivity to a mobile user, and can potentially carry a signal for long distances. The characteristics of a radio channel depend significantly on the propagation environment and the distance over which a signal is to be carried.
+  Radio channels carry signals in the electromagnetic spectrum.
+  They are an attractive medium because they require no physical wire to be installed, can penetrate walls, provide connectivity to a mobile user, and can potentially carry a signal for long distances.
+  The characteristics of a radio channel depend significantly on the propagation environment and the distance over which a signal is to be carried.
    Environmental considerations determine path loss and shadow fading, multipath fading, and interference.
    Terrestrial radio channels can be broadly classified into three groups:
 
-   - those that operate over very short distance (for example with one or two meters): personal devices such as wireless headsets, keyboards, and medical devices operate over short distances;
-   - those that operate in local areas, typically spanning from ten to a few hundred meters: wireless LAN technologies;
-   - those that operate in the wide area, spanning tens of kilometers: cellular access technologies.  
+   - those that operate over *very short distance*: personal devices such as wireless headsets, keyboards, and medical devices operate over short distances;
+   - those that operate in *local areas*, typically spanning from ten to a few hundred meters: wireless LAN technologies;
+   - those that operate in the *wide area*, spanning tens of kilometers: cellular access technologies.  
 
 - **Satellite Radio Channels**
 
-  A communication satellite links two or more Earth-based microwave transmitter/receivers, known as ground stations. Two types of satellites are used in communications: **geostationary satellites (GEO)** and **low-earth orbiting (LEO)** satellites. 
+  A communication satellite links two or more Earth-based microwave transmitter/receivers, known as ground stations.
+  Two types of satellites are used in communications: **geostationary satellites (GEO)** and **low-earth orbiting (LEO)** satellites. 
 
-  Geostationary satellites permanently remain above the same spot on Earth. This stationary presence is achieved by placing the satellite in orbit at 36,000 kilometers above Earth’s surface. This huge distance from ground station through satellite back to ground station introduces a substantial signal propagation delay of 280 milliseconds. Nevertheless, satellite links are often used in areas without access to DSL or cable-based Internet access.
+  Geostationary satellites permanently remain above the same spot on Earth.
+  They are placed at a huge distance from ground stations, introducing a substantial signal propagation delay.
+  Nevertheless, satellite links are often used in areas without access to DSL or cable-based Internet access.
   
-  LEO satellites are placed much closer to Earth. They rotate around Earth and may communicate with each other, as well as with ground stations. To provide continuous coverage to an area, many satellites need to be placed in orbit. 
+  LEO satellites are placed much closer to Earth.
+  They rotate around Earth and may communicate with each other, as well as with ground stations.
+  To provide continuous coverage to an area, many satellites need to be placed in orbit. 
 
 ## The Network Core
 
 Between source and destination, each packet travels through communication links and **packet switches** (either **routers** or **link-layer switches**).
-Packets are transmitted over each communication link at a rate equal to the full transmission rate of the link. So, if a source end system or a packet switch is sending a packet of $L$ bits over a link with transmission rate $R$ bits/sec, then the time to transmit the packet is $L/R$ seconds.
+Packets are transmitted over each communication link at a rate equal to the full transmission rate of the link.
+So, if a source end system or a packet switch is sending a packet of $L$ bits over a link with transmission rate $R$ bits/sec, then the time to transmit the packet is $L/R$ seconds.
 
 ### Packet Switching
 
-#### Store-and-Forward Transmission
-
-Most packet switches use store-and-forward transmission at the inputs to the links. Store-and-forward transmission means that the packet switch must receive the entire packet before it can begin to transmit the first bit of the packet onto the outbound link.
+Most packet switches use **store-and-forward transmission** at the inputs to the links.
+Store-and-forward transmission means that the packet switch must receive the entire packet before it can begin to transmit the first bit of the packet onto the outbound link.
 
 The end-to-end delay of sending $P$ packets of $L$ bytes over a path consisting of $N$ links each of rate $R$ is
 
@@ -129,57 +152,80 @@ $$
 (N+P-1) \frac{L}{R}
 $$
 
-#### Queuing Delays and Packet Loss
-
-Each packet switch has multiple links attached to it. For each attached link, the packet switch has an output buffer (also called an output queue), which stores packets that the router is about to send into that link.
+Each packet switch may have multiple links attached to it. 
+For each attached link, the packet switch has an **output buffer** or **output queue**, which stores packets that the router is about to send into that link.  
 The output buffers play a key role in packet switching.
 If an arriving packet needs to be transmitted onto a link but finds the link busy with the transmission of another packet, the arriving packet must wait in the output buffer.
 Thus, in addition to the store-and-forward delays, packets suffer output buffer queuing delays.
-These delays are variable and depend on the level of congestion in the network.
-Since the amount of buffer space is finite, an arriving packet may find that the buffer is completely full with other packets waiting for transmission.
+These delays are variable and depend on the level of congestion in the network.  
+Since the amount of buffer space is finite, an arriving packet may find that the buffer is completely full.
 In this case, **packet loss** will occur — either the arriving packet or one of the already-queued packets will be dropped.
 
-#### Forwarding Tables and Routing Protocols
-
-In the Internet, every end system has an address called an IP address.
+In the Internet, every end system has an address called an **IP address**, defined by the **IP protocol**.  
 When a source end system wants to send a packet to a destination end system, the source includes the destination’s IP address in the packet’s header.
-As with postal addresses, this address has a hierarchical structure.
-When a packet arrives at a router in the network, the router examines a portion of the packet’s destination address and forwards the packet to an adjacent router.
-More specifically, each router has a **forwarding table** that maps destination addresses (or portions of the destination addresses) to that router’s outbound links.
-When a packet arrives at a router, the router examines the address and searches its forwarding table, using this destination address, to find the appropriate outbound link.
-The router then directs the packet to this outbound link.
+Each router has a **forwarding table** that maps destination addresses to that router’s outbound links.
+When a packet arrives at a router, the router examines the destination address and searches its forwarding table to direct the packet to the appropriate outbound link.
 
 ### Circuit Switching
 
 In circuit-switched networks, the resources needed along a path (buffers, link transmission rate) to provide for communication between the end systems are reserved for the duration of the communication session between the end systems.
 
-#### Multiplexing in Circuit-Switched Networks
-
 A circuit in a link is implemented with either **frequency-division multiplexing (FDM)** or **time-division multiplexing (TDM)**.
 
-With FDM, the frequency spectrum of a link is divided up among the connections established across the link.
-Specifically, the link dedicates a frequency band to each connection for the duration of the connection.
+With FDM, the frequency spectrum of a link is divided up among the connections established across the link, with the link dedicating a frequency band to each connection.
 The width of the band is called **bandwidth**.
 
-For a TDM link, time is divided into frames of fixed duration, and each frame is divided into a fixed number of time slots. When the network establishes a connection across a link, the network dedicates one time slot in every frame to this connection. These slots are dedicated for the sole use of that connection, with one time slot available for use (in every frame) to transmit the connection's data.
+For a TDM link, time is divided into frames of fixed duration, and each frame is divided into a fixed number of time slots.
+When the network establishes a connection across a link, the network dedicates one time slot in every frame to this connection.
 
 ### Packet vs Circuit Switching
 
-Critics of packet switching have often argued that packet switching is not suitable for real-time services (for example, telephone calls and video conference calls) because of its variable and unpredictable end-to-end delays (due primarily to variable for real-time services because of its variable and unpredictable end-to-end delays.
+Critics of packet switching have often argued that packet switching is not suitable for real-time services because of its variable and unpredictable end-to-end delays.
 
 Proponents of packet switching argue that (1) it offers better sharing of transmission capacity than circuit switching and (2) it is simpler, more efficient, and less costly to implement than circuit switching.
 
 Critics of circuit switching have always argued that circuit switching is wasteful because the dedicated circuits are idle during **silent periods**. 
 
+## The Internet as a Service
+
 ### A Network of Networks
 
-We saw earlier that end systems connect into the Internet via an access ISP.
-The access ISP can provide either wired or wireless connectivity, using an array of access technologies including DSL, cable, FTTH, Wi-Fi, and cellular.
-But connecting end users and content providers into an access ISP is only a small piece of solving the puzzle of connecting the billions of end systems that make up the Internet.
-To complete this puzzle, the access ISPs themselves must be interconnected.
-This is done by creating a network of networks — understanding this phrase is the key to understanding the Internet.
+The Internet is maintained by **Internet Service Providers (ISPs)**, who are responsible for both connecting with end systems at the network edge, and being connected between each other at the network core.
 
-*insert description of network of networks*
+ISPs are organized in a hierarchical structure where there are **lower-tier ISPs** and **upper-tier ISPs**. 
+
+At the lowest level there are **access ISP**, responsible for connecting end systems with the network core.
+An access ISP may be a telco, but also an university or a company providing Internet access to its employees.
+
+At the top of the hierarchy are **tier-1 ISPs** who compete between each other to provide coverage on a global scale.
+These ISPs must, of course, be connected between each other (or an end system covered by one would not be able to reach an end system covered by another).
+There are approximately a dozen tier-1 ISPs.
+
+In between these two levels there are **regional ISP**, who typically cover a region.
+These ISPs are necessary as it is very hard logistically or undesirable economically for a tier-1 ISP to have a presence close to each and every access ISP.
+Just like there are competing tier-1 ISPs, in a given region there may be competing ISPs providing coverage.
+
+In order to conduct profitable businesses, each ISP in a higher level must charge ISPs below them for their Internet connection.
+We say the lower level ISP is a **customer**, and the higher level ISP a **provider**.
+Thus, typically, regional ISPs provide access ISPs, while being provided by tier-1 ISPs: there is a customer-provider relationship at each level of the hierarchy.
+Note that it is natural for a provider to define what it charges a customer in function of the amount of traffic they exchange.
+To reduce costs, a pair of nearby ISPs at the same level of the hierarchy can **peer**, that is, they can directly connect their networks together.
+
+Note that, at any level of the hierarchy, an ISP is not restrict to connect itself with ISPs in the level that is directly above: for example, an access ISP may be provided for a tier-1 ISP, or a regional ISP may be provided by another, larger, regional ISP.
+
+Any ISP (except tier-1 ones) may also choose to **multi-home**, that is, connect to two or more provider ISPs.
+This brings customer ISPs resilience to failure/congestion in a provider ISP.
+When two ISPs peer, it is typically settlement-free, that is, neither ISP pays the other.
+
+Along these same lines, a third-party company can create an **Internet Exchange Point (IXP)**, which is a meeting point where multiple ISPs can peer together.
+An IXP is typically in a stand-alone building with its own switches.
+
+Finally, **content providers** may opt to avoid being restricted to the Internet's infrastructure, and maintain their own networking infrastructure - a **content provider network**.
+By creating its own network, a content provider not only reduces its payments to upper-tier ISPs, but also has greater control of how its services are ultimately delivered to end users.  
+Content provider networks will try to "bypass" the upper tiers of the Internet by peering (settlement free) with lower-tier ISPs. 
+However, because many access ISPs can still only be reached by transiting through tier-1 networks, they also connect to tier-1 ISPs, and pay those ISPs for the traffic exchanged.
+
+![Interconnection of ISPs](./figs/network_of_networks.png)
 
 ## Performance Metrics
 
@@ -189,64 +235,53 @@ In this section we'll analyse the various types of delay associated with the tra
 
 - **Processing Delay**
 
-  The time required to examine the packet’s header and determine where to direct the packet is part of the processing delay. The processing delay can also include other factors, such as the time needed to check for bit-level errors in the packet that occurred in transmitting the packet’s bits from the upstream node to router the router.
+  Includes the time required to examine a packet’s header and determine where to direct it. 
+  The processing delay can also include other factors, such as the time needed to check for bit-level errors in the packet.
 
 - **Queuing Delay**
 
-  At the queue, the packet experiences a queuing delay as it waits to be transmitted onto the link. The length of the queuing delay of a specific packet will depend on the number of earlier-arriving packets that are queued and waiting for transmission onto the link. If the queue is empty and no other packet is currently being transmitted, then our packet’s queuing delay will be zero. On the other hand, if the traffic is heavy and many other packets are also waiting to be transmitted, the queuing delay will be long.
+  At the queue, the packet experiences a queuing delay as it waits to be transmitted onto the link.
+  The length of the queuing delay of a specific packet will depend on the number of queued packets.
 
 - **Transmission Delay**
 
-  Assuming that packets are transmitted in a first-come-first-served manner, as is common in packet-switched networks, our packet can be transmitted only after all the packets that have arrived before it have been transmitted. This is the amount of time required to push (that is, transmit) all of the packet’s bits into the link. 
+  The amount of time required to push (that is, transmit) all of a packet’s bits into the link introduces a transmission delay.
 
 - **Propagation Delay**
 
-  Once a bit is pushed into the link, it needs to propagate to the next router. The bit propagates at the propagation speed of the link, which depends on the physical medium of the link.
+  Once a bit is pushed into the link, it needs to propagate to the next router.
+  The bit propagates at the propagation speed of the link, which depends on the physical medium of the link.
 
-### Queuing Delay and Packet Loss
+#### Queuing Delay and Packet Loss
 
 Let $a$ denote the average rate at which packets arrive at the queue ($a$ is in units of packets/sec).
 With transmission rate $R$ (in bits/sec) and all packets having $L$ bits, we have that the average rate at which bits arrive at the queue is $La$ bits/sec.
 Finally, assume that the queue is very big, so that it can hold essentially an infinite number of bits.
 The ratio $\frac{La}{R}$, called the **traffic intensity**, often plays an important role in estimating the extent of the queuing delay.
-If $\frac{La}{R} > 1$, then the average rate at which bits arrive at the queue exceeds the rate at which the bits can be transmitted from the queue.
-In this unfortunate situation, the queue will tend to increase without bound and the queuing delay will approach infinity!
+
+If $\frac{La}{R} > 1$, then the average rate at which bits arrive at the queue exceeds the rate at which the bits can be transmitted from the queue, forcing the queue will to increase without bound and the queuing delay to approach infinity.
 Therefore, one of the golden rules in traffic engineering is: Design your system so that the traffic intensity is no greater than 1.
 
-Now consider the case $La/R \leq 1$.
-Here, the nature of the arriving traffic impacts the queuing delay.
-For example, if packets arrive periodically (that is, one packet arrives every $L/R$ seconds) then every packet will arrive at an empty queue and there will be no queuing delay.
-On the other hand, if packets arrive in bursts but periodically, there can be a significant average queuing delay.
-For example, suppose $N$ packets arrive simultaneously every $\frac{L}{R}N$ seconds.
-Then the first packet transmitted has no queuing delay, the second packet transmitted has a queuing delay of $\frac{L}{R}$ seconds and, more generally, the $n$th packet has a queuing delay of $(n-1)\frac{L}{R}$.
-This leads to an average delay of $\frac{(N-1)N}{2}\frac{L}{R}$.
+When $\frac{La}{R} \leq 1$, the nature of the arriving traffic impacts the queuing delay.
+For example, if packets arrive periodically every packet will arrive at an empty queue and there will be no queuing delay, but if packets arrive in bursts but periodically, there can be a significant average queuing delay.
 
-The two examples of periodic arrivals described above are a bit academic.
-Typically, the arrival process to a queue is random; that is, the arrivals do not follow any pattern and the packets are spaced apart by random amounts of time.
-In this more realistic case, the quantity La/R is not usually sufficient to fully characterize the queuing delay statistics.
+Typically, the arrival process to a queue is random.
+In this more realistic case, the quantity $\frac{La}{R}$ is not usually sufficient to fully characterize the queuing delay statistics.  
 Nonetheless, it is useful in gaining an intuitive understanding of the extent of the queuing delay.
-In particular, if the traffic intensity is close to zero, then packet arrivals are few and far between and it is unlikely that an arriving packet will find another packet in the queue.
-Hence, the average queuing delay will be close to zero.
-On the other hand, when the traffic intensity is close to 1, there will be intervals of time when the arrival rate exceeds the transmission capacity (due to variations in packet arrival rate), and a queue will form during these periods of time; when the arrival rate is less than the transmission capacity, the length of the queue will shrink.
-Nonetheless, as the traffic intensity approaches 1, the average queue length gets larger and larger.
 
-#### Packet Loss
+In reality a queue preceding a link is not capable of holding an infinite number of packets, but has a finite capacity.
+Therefore, packet delays do not approach infinity as the traffic intensity approaches 1.
+Instead, a packet can arrive to find a full queue in which case a router will **drop** or **lost**.
 
-In our discussions above, we have assumed that the queue is capable of holding an infinite number of packets.
-In reality a queue preceding a link has finite capacity, although the queuing capacity greatly depends on the router design and cost.
-Because the queue capacity is finite, packet delays do not really approach infinity as the traffic intensity approaches 1.
-Instead, a packet can arrive to find a full queue.
-With no place to store such a packet, a router will **drop** that packet; that is, the packet will be **lost**.
-
-### End-to-End Delay
+#### End-to-End Delay
 
 The delay over a route consisting of $N$ routers is the sum of the delay over every one of the routers.
 In addition to processing, transmission, and propagation delays, there can be additional significant delays in the end systems.
 For example, an end system wanting to transmit a packet into a shared medium may purposefully delay its transmission as part of its protocol for sharing the medium with other end systems.
 
-## Throughput in Computer Networks
+### Throughput in Computer Networks
 
-The **throughput** is a measure of the rate (bits/time) at which bits are transferred between a sender and a receiver.
+The **throughput** is a measure of the rate at which bits are transferred between a sender and a receiver.
 The throughput of a connection will always be limited by the slowest link on the route from the sender to the receiver - this is called the **bottleneck link**.
 
 Generally, the core of the Internet is over-provisioned with high speed links that experience little congestion, so that the rate at which bits can flow from source to destination is constrained by the access network.
@@ -255,7 +290,7 @@ Generally, the core of the Internet is over-provisioned with high speed links th
 
 To provide structure to the design of network protocols, network designers organize protocols in **layers**.
 A layered architecture allows us to discuss a well-defined, specific part of a large and complex system.
-This simplification itself is of considerable value by providing modularity, making it much easier to change the implementation of the service provided by the layer.
+This simplification is of considerable value by providing modularity, making it much easier to change the implementation of the service provided by the layer.
 As long as the layer provides the same **service** to the layer above it, and uses the same services from the layer below it, the remainder of the system remains unchanged when a layer’s implementation is changed.
 
 One potential drawback of layering is that one layer may duplicate lower-layer functionality.
@@ -267,30 +302,22 @@ The Internet protocol stack consists of five layers: the physical, link, network
 ### Application Layer
 
 The application layer is where network applications and their application-layer protocols reside. 
-The Internet’s application layer includes many protocols, such as the HTTP protocol (which provides for Web document request and transfer), SMTP (which provides for the transfer of e-mail messages), FTP (which provides for the transfer of files between two end systems), and DNS (which provides translation from human-friendly names for Internet end systems to 32-bit network addresses).
 An application-layer protocol is distributed over multiple end systems, with the application in one end system using the protocol to exchange packets of information with the application in another end system.
-We’ll refer to this packet of information at the application layer as a **message**.
+We’ll refer to a packet of information at the application layer as a **message**.
 
 ### Transport Layer
 
-The Internet’s transport layer transports application-layer messages between application endpoints. In the Internet, there are two transport protocols, TCP and UDP, either of which can transport application-layer messages. 
-
-TCP provides a connection-oriented service to its applications. This service includes guaranteed delivery of application-layer messages to the destination and flow control (that is, sender/receiver speed matching). TCP also breaks long messages into shorter segments and provides a congestion-control mechanism, so that a source throttles its transmission rate when the network is congested. 
-
-The UDP protocol provides a connectionless service to its applications. This is a no-frills service that provides no reliability, no flow control, and no congestion control. 
-
-In this book, we’ll refer to a transport-layer packet as a **segment**.
+The Internet’s transport layer transports application-layer messages between application endpoints.
+In the Internet, there are two transport protocols, TCP and UDP, either of which can transport application-layer messages in transport-layer packets, called **segments**. 
 
 ### Network Layer
 
 The Internet’s network layer is responsible for moving network-layer packets known as **datagrams** from one host to another.
-The Internet transport-layer protocol (TCP or UDP) in a source host passes a transport-layer segment and a destination address to the network layer, just as you would give the postal service a letter with a destination address.
+The Internet transport-layer protocol (TCP or UDP) in a source host passes a transport-layer segment and a destination address to the network layer.
 The network layer then provides the service of delivering the segment to the transport layer in the destination host.
 
-The Internet’s network layer includes the celebrated IP protocol, which defines the fields in the datagram as well as how the end systems and routers act on these fields.
-There is only one IP protocol, and all Internet components that have a network layer must run the IP protocol.
-The Internet’s network layer also contains routing protocols that determine the routes that datagrams take between sources and destinations.
-The Internet has many routing protocols. The Internet is a network of networks, and within a network, the network administrator can run any routing protocol desired.
+The Internet’s network layer includes the IP protocol, and all Internet components that have a network layer must run the IP protocol.
+It also contains routing protocols that determine the routes that datagrams take between sources and destinations.
 
 ### Link Layer
 
@@ -308,22 +335,9 @@ The protocols in this layer are again link dependent and further depend on the a
 ## Encapsulation
 
 Similar to end systems, routers and link-layer switches organize their networking hardware and software into layers.
-But routers and link-layer switches do not implement all of the layers in the protocol stack; they typically implement only the bottom layers.
-Usually, link-layer switches implement layers 1 and 2, while routers implement layers 1 through 3. 
-This means, for example, that Internet routers are capable of implementing the IP protocol (a layer 3 protocol), while link-layer switches are not.
-This means that while link-layer switches do not recognize IP addresses, they are capable of recognizing layer 2 addresses, such as Ethernet addresses.
-Note that hosts implement all five layers; this is consistent with the view that the Internet architecture puts much of its complexity at the edges of the network.
+Usually, link-layer switches implement layers 1 and 2 of the protocol stack, while routers implement layers 1 through 3, and hosts implement all five layers.
 
-Let's go through the journey of a message from a host to another. 
-- At the sending host, an **application-layer message** is passed to the transport layer. 
-- In the simplest case, the transport layer takes the message and appends additional information (so-called transport-layer header information) that will be used by the receiver-side transport layer. 
-  The application-layer message and the transport-layer header information together constitute the **transport-layer segment**. 
-  The transport-layer segment thus encapsulates the application-layer message. 
-  The added information might include information allowing the receiver-side transport layer to deliver the message up to the appropriate application, and error-detection bits that allow the receiver to determine whether bits in the message have been changed in route. 
-- The transport layer then passes the segment to the network layer, which adds network-layer header information such as source and destination end system addresses, creating a **network-layer datagram**. 
-- The datagram is then passed to the link layer, which (of course!) will add its own link-layer header information and create a **link-layer frame**. 
-
-We see that at each layer, a packet has two types of fields: header fields and a **payload field**. 
+At each layer, a packet has two types of fields: header fields and a **payload field**. 
 The payload is typically a packet from the layer above, reflecting the **encapsulation** of the stack protocol.
 
 # Chapter 2: Application Layer
