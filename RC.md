@@ -3,7 +3,7 @@
 ## What Is the Internet?
 
 The **Internet** is a computer network that interconnects billions of computing devices throughout the world.
-In networking jargon, every device that runs applications that use the Internet is called an **end system**.
+In networking jargon, every device that runs applications that use the Internet is called an **end system** or **host**.
 
 The Internet is able to connect so many devices by having a structure that is able to span/reach every single one of them.
 Thus, if an end system A wants to reach another end system B, it only needs to send its message to the Internet, which will then be responsible for delivering the message to B.
@@ -16,8 +16,6 @@ A protocol defines the format and the order of messages exchanged between two or
 more communicating entities, as well as the actions taken on the transmission 
 and/or receipt of a message or other event.
 ```
-
-End systems attached to the Internet provide a **socket interface** that specifies how a program running on one end system asks the Internet infrastructure to deliver data to a specific destination program running on another end system.
 
 We can differentiate between two main sectors of the Internet:
 The **network edge** establishes an interface between end systems wanting to use the Internet and the **network core**.
@@ -350,63 +348,75 @@ Confining application software to the end systems has facilitated the rapid deve
 
 ### Network Application Architectures
 
-From the application developer’s perspective, the network architecture is fixed and provides a specific set of services to applications. The **application architecture**, on the other hand, is designed by the application developer and dictates how the application is structured over the various end systems.
+A network application consists of pairs of processes that communicate over a network.
+From the application developer’s perspective, the network architecture is fixed and provides a specific set of services to applications.
+The **application architecture**, on the other hand, is designed by the application developer and dictates how the application is structured over the various end systems.
+
 The two predominant architectural paradigms used in modern network applications are:
-- **Client-Server architecture**: there is an always-on host, called the **server**, which services requests from many other hosts, called **clients**.
+
+- **Client-Server architecture**:
+  There is an always-on host, called the **server**, which services requests from many other hosts, called **clients**.
   Server size needs to scale with size of application. Very big applications require data center(s) to handle the clients' requests.
-- **Peer-to-Peer architecture (P2P)**: there is minimal (or no) reliance on dedicated servers. Instead the application exploits direct communication between pairs of intermittently connected hosts, called **peers**.
+- **Peer-to-Peer architecture (P2P)**:
+  There is minimal (or no) reliance on dedicated servers. Instead the application exploits direct communication between pairs of intermittently connected hosts, called **peers**.
   One of the most compelling features of P2P architectures is their self-
 scalability.
-
-A network application consists of pairs of processes that communicate over a network.
-Processes on two different end systems communicate with each other by exchanging **messages** across the computer network.
 
 In the context of a communication session between a pair of processes, the process that initiates the communication is labeled as the **client**, and the process that waits to be contacted is the **server**.
 
 In order for a process running on the client to send packets to a process running on the server, two pieces of information need to be specified: 
-- The address of the server host: in the Internet, hosts are identified by **IP addresses**: 32-bit (for IPv4) or 128-bit (for IPv6) values that uniquely identify a host in the Internet.
-- An identifier that specifies the receiving process: this is an integer that we give the name **port number**. This is necessary as the server could be running many network applications.
+
+- The address of the server host - in the Internet, hosts are identified by **IP addresses**.
+- An identifier that specifies the receiving process - an integer that we give the name **port number**. 
 
 A process sends messages into, and receives messages from, the network through a software interface called a **socket**.
-A socket is the interface between the application layer and the transport layer within a host or, in other words, it is the API between the application and the network.
+A socket is the interface between the application layer and the transport layer within a host.
+In other words, it is the API between the application and the network.
 The application developer has control of everything on the application-layer side of the socket but has little control of the transport-layer side of the socket.
 
-The only control that the application developer has on the transport-layer side is (1) the choice of transport protocol and (2) perhaps the ability to fix a few transport-layer parameters such as maximum buffer and maximum segment sizes.
-The choice of transport protocol and its parameters may have effects on:
-- **data integrity**;
-- **throughput**;
-- **security of data**;
-- **timing**.
+On the application-layer side of the socket, **application-layer protocols** define how an application’s processes, running on different end systems, pass messages to each other.
+In particular, an application-layer protocol defines:
 
-There are two main transport layer services that the Internet provides to the application layer.
-
-**TCP**  
-The TCP service model includes a connection-oriented service and a reliable data transfer service. When an application invokes TCP as its transport protocol, the application receives both of these services from TCP:
-- **Connection-oriented service**. TCP has the client and server exchange transport- layer control information with each other before the application-level mes- sages begin to flow. This so-called **handshaking** procedure alerts the client and server, allowing them to prepare for an onslaught of packets. After the handshaking phase, a **TCP connection** is said to exist between the sockets of the two processes. The connection is a full-duplex connection in that the two processes can send messages to each other over the connection at the same time. When the application finishes sending messages, it must tear down the connection.
-- **Reliable data transfer service**. The communicating processes can rely on TCP to deliver all data sent without error and in the proper order. When one side of the application passes a stream of bytes into a socket, it can count on TCP to deliver the same stream of bytes to the receiving socket, with no missing or duplicate bytes.
-
-TCP also includes a congestion-control mechanism, a service for the general welfare of the Internet rather than for the direct benefit of the communicating processes. The TCP congestion-control mechanism throttles a sending process (client or server) when the network is congested between sender and receiver.
-
-**UDP**  
-UDP is connectionless, so there is no handshaking before the two processes start to communicate. UDP provides an unreliable data transfer service—that is, when a process sends a message into a UDP socket, UDP provides no guarantee that the message will ever reach the receiving process. Furthermore, messages that do arrive at the receiving process may arrive out of order.
-UDP does not include a congestion-control mechanism, so the sending side of UDP can pump data into the layer below (the network layer) at any rate it pleases.
-
-On the application-layer side of the socket, **application-layer protocols** define how an application’s processes, running on different end systems, pass messages to each other. In particular, an application-layer protocol defines:
 - The types of messages exchanged, for example, request messages and response messages;
 - The syntax of the various message types, such as the fields in the message and how the fields are delineated;
 - The semantics of the fields, that is, the meaning of the information in the fields;
 - Rules for determining when and how a process sends messages and responds to messages.
 
-Some application-layer protocols, such as HTTP, are specified in RFCs and are therefore in the public domain.
+The only control that the application developer has on the transport-layer side is the choice of transport protocol and perhaps the ability to fix a few transport-layer parameters such as maximum buffer and maximum segment sizes.  
+The choice of transport protocol and its parameters may have effects on the **reliability**, **throughput**, **security**, and **timing** of delivery of the messages.
+
+There are two main transport layer services that the Internet provides to the application layer:
+
+- TCP
+
+  When an application invokes TCP as its transport protocol, the application receives the following services:
+
+  - **Connection-oriented service**.
+    TCP has the client and server exchange transport-layer control information with each other before the application-level messages begin to flow.
+    After this handshaking phase, a **TCP connection** is said to exist between the sockets of the two processes.
+    The connection is a **full-duplex** connection in that the two processes can send messages to each other over the connection at the same time.
+    When the application finishes sending messages, it must tear down the connection.
+  - **Reliable data transfer service**. 
+    The communicating processes can rely on TCP to deliver all data sent without error and in the proper order.
+    When one side of the application passes a stream of bytes into a socket, it can count on TCP to deliver the same stream of bytes to the receiving socket, with no missing or duplicate bytes.
+
+  TCP also includes a congestion-control mechanism, a service for the general welfare of the Internet rather than for the direct benefit of the communicating processes.
+
+- UDP
+
+  UDP is connectionless, so there is no handshaking before the two processes start to communicate.
+  UDP provides an unreliable data transfer service - that is, when a process sends a message into a UDP socket, UDP provides no guarantee that the message will ever reach the receiving process.
+  Furthermore, messages that do arrive at the receiving process may arrive out of order.
+  UDP does not include a congestion-control mechanism, so the sending side of UDP can pump data into the layer below (the network layer) at any rate it pleases.
 
 ## The Web and HTTP
 
-The **HyperText Transfer Protocol (HTTP)**, the Web’s application-layer protocol, is at the heart of the Web.
+The **HyperText Transfer Protocol (HTTP)** is the Web’s application-layer protocol.
 HTTP is implemented in two programs: a client program and a server program, executing on different end systems, who talk to each other by exchanging HTTP messages. 
 HTTP defines the structure of these messages and how the client and server exchange the messages.
 
-When a user requests a Web page, the browser sends HTTP request messages for the objects in the page to the server.
-The server receives the requests and responds with HTTP response messages that contain the objects.
+When a user requests a Web page, the browser sends **HTTP request messages** for the objects in the page to the server.
+The server receives the requests and responds with **HTTP response messages** that contain the objects.
 
 It is important to note that the server sends requested files to clients without storing any state information about the client.
 HTTP is thus said to be a **stateless protocol**.
@@ -431,9 +441,10 @@ For a server that is serving many connections, this might be a significant overh
 
 There are two types of HTTP messages: request messages and response messages
 
-#### Request Message
+#### HTTP Request Message
 
-The first line of an HTTP request message is called the **request line**, while the subsequent lines are called the header lines. Depending on the method used in the request message, there might be an **entity body** in the message as well.
+The first line of an HTTP request message is called the **request line**, while the subsequent lines are called the header lines. 
+Depending on the method used in the request message, there might be an **entity body** in the message as well.
 
 ![HTTP request message](./figs/HTTP_request_message.png)
 
@@ -443,58 +454,79 @@ The request line has three fields:
 - the HTTP version field. 
 
 The method field can take on several different values, including:
-- **GET**: used when the browser requests an object (the great majority of HTTP request);
-- **HEAD**: similar to the GET method - when a server receives a request with the HEAD method, it responds with an HTTP message but it leaves out the requested object (application developers often use the HEAD method for debugging);
-- **POST**: often used when the user fills out a form (for example, when a user provides search words to a search engine). With a POST message, the user is still requesting a Web page from the server, but the contents of it depend on entered data.
-- **PUT**: often used in conjunction with Web publishing tools. It allows a user to upload an object to a specific path (directory) on a specific Web server. The PUT method is also used by applications that need to upload objects to Web servers. 
-- **DELETE**: allows a user, or an application, to delete an object on a Web server.
+- **GET**: 
+  Used when the browser requests an object (the great majority of HTTP request).
+- **HEAD**: 
+  Similar to the GET method - when a server receives a request with the HEAD method, it responds with an HTTP message but it leaves out the requested object (application developers often use the HEAD method for debugging).
+- **POST**: 
+  Often used when the user fills out a form (for example, when a user provides search words to a search engine). 
+  With a POST message, the user is still requesting a Web page from the server, but the contents of it depend on entered data.
+- **PUT**:
+  Often used in conjunction with Web publishing tools.
+  It allows a user to upload an object to a specific path (directory) on a specific Web server.
+  The PUT method is also used by applications that need to upload objects to Web servers. 
+- **DELETE**: 
+  Allows a user, or an application, to delete an object on a Web server.
 
-### HTTP Response Message
+#### HTTP Response Message
 
 Similarly to a request message, a response message has a **status line**, some **header lines**, and a **entity body** (preceded by a blank line).
 
-![HTTP response message](./figs/HTTP_respnose_message.png)
+![HTTP response message](./figs/HTTP_response_message.png)
 
 The header line has three fields:
 - the HTTP version field;
 - the status code field;
 - the phrase field.
 
-This status code and its associated pphrase indicate the result of the request. A few examples are:
-- 200 OK: Request succeeded and the information is returned in the response;
-- 301 Moved Permanently: Requested object has been permanently moved; 
-- 400 Bad Request: This is a generic error code indicating that the request could not be understood by the server;
-- 404 Not Found: The requested document does not exist on this server;
-- 505 HTTP Version Not Supported: The requested HTTP protocol version is not supported by the server.
+This status code and its associated phrase indicate the result of the request. 
+A few examples are:
 
-## User-Server Interaction: Cookies
+- **200 OK**:
+  Request succeeded and the information is returned in the response.
+- **301 Moved Permanently**:
+  Requested object has been permanently moved.
+- **400 Bad Request**:
+  This is a generic error code indicating that the request could not be understood by the server.
+- **404 Not Found**:
+  The requested document does not exist on this server.
+- **505 HTTP Version Not Supported**:
+  The requested HTTP protocol version is not supported by the server.
 
-**Cookies** allow sites to keep track of users.
+### Cookies
+
+As we've seen above, HTTP is a stateless protocol - the server does not keep information about a client's requests.
+However, for some Web uses, this may be useful.
+HTTP allows keeping track of users through **cookies**.
+
 Cookie technology has four components: 
-- a cookie header line in the HTTP response message;
-- a cookie header line in the HTTP request message;
-- a cookie file kept on the user’s end system and managed by the user’s browser;
-- a back-end database at the Web site.
+- A cookie header line in the HTTP response message.
+- A cookie header line in the HTTP request message.
+- A cookie file kept on the user’s end system and managed by the user’s browser.
+- A back-end database at the Web site.
 
-## Web Caching
+### Web Caching
 
 A **Web cache**, also called a **proxy server**, is a network entity that satisfies HTTP requests on the behalf of an origin Web server.
 Web cache has its own disk storage and keeps copies of recently requested objects in this storage.
 
 When a browser requests an object from a server with an web cache:
+
 1. The browser establishes a TCP connection to the Web cache and sends an HTTP request for the object to the Web cache.
-2. The Web cache checks to see if it has a copy of the object stored locally. If it does, the Web cache returns the object within an HTTP response message to the client browser.
-3. If the Web cache does not have the object, the Web cache opens a TCP connec- tion to the origin server, that is, to www.someschool.edu. The Web cache then sends an HTTP request for the object into the cache-to-server TCP connec- tion. After receiving this request, the origin server sends the object within an HTTP response to the Web cache.
-4. When the Web cache receives the object, it stores a copy in its local storage and sends a copy, within an HTTP response message, to the client browser (over the existing TCP connection between the client browser and the Web cache).
+2. The Web cache checks to see if it has a copy of the object stored locally.
+  If it does, the Web cache returns the object within an HTTP response message to the client browser.
+3. If the Web cache does not have the object, the Web cache opens a TCP connection to the origin server. 
+  The Web cache then sends an HTTP request for the object into the cache-to-server TCP connection.
+  After receiving this request, the origin server sends the object within an HTTP response to the Web cache.
+4. When the Web cache receives the object, it stores a copy in its local storage and sends a copy, within an HTTP response message, to the client browser.
 
 Typically a Web cache is purchased and installed by an ISP.
-It has seen deployment in the Internet for two reasons:
-- reduce response time;
-- reduce traffic
+It has seen deployment in the Internet as it reduces both response times and traffic.
 
-Caching indroduces however a new problem: the copy of an object residing in the cache may have been modified since the copy was cached at the client.
-HTTP has a mechanism that allows a cache to verify that its objects are up to date.
-This mechanism is called the **conditional GET**.
+#### Conditional GET
+
+Caching introduces however a new problem: the copy of an object residing in the cache may have been modified since the copy was cached at the client.
+HTTP has a mechanism that allows a cache to verify that its objects are up to date, called the **conditional GET**.
 An HTTP request message is a so-called conditional GET message if it uses the GET method and includes an "If-Modified-Since:" header line.
 Upon getting this request, a web cache will request the same page from the original server, which if the page has not been modified since the specified date, will respond with a "304 Not Modified" message (and an empty entity body to save bandwidth), indicating that the web cache may return the object it has stored.
 
@@ -502,12 +534,14 @@ Through the use of **Content Distribution Networks (CDNs)**, Web caches are incr
 A CDN company installs many geographically distributed caches throughout the Internet, thereby localizing much of the traffic.
 There are shared CDNs (such as Akamai and Limelight) and dedicated CDNs (such as Google and Netflix).
 
-## HTTP/2
+### HTTP/2
 
 The primary goals for HTTP/2 are:
-- to reduce perceived latency by enabling request and response multiplexing over a single TCP connection;
-- provide request prioritization and server push;
-- provide efficient compression of HTTP header fields.
+
+- To reduce perceived latency by enabling request and response multiplexing over a single TCP connection.
+- Provide request prioritization and server push.
+- Provide efficient compression of HTTP header fields.
+
 HTTP/2 does not change HTTP methods, status codes, URLs, or header fields.
 Instead, HTTP/2 changes how the data is formatted and transported between the client and server.
 
@@ -518,11 +552,11 @@ The typical solution for this problem in HTTP/1.1 is to open multiple parallel T
 HTTP/2, however, presents a better solution by breaking each message into small frames, and interleaving the request and response messages on the same TCP connection.
 The ability to break down an HTTP message into independent frames, interleave them, and then reassemble them on the other end is the single most important enhancement of HTTP/2.
 
-## Eletronic Mail in the Internet
+## Electronic Mail in the Internet
 
-The Internet maiil system has three major components:
-- **user agents**;
-- **mail servers**;
+The Internet mail system has three major components:
+- **User agents**;
+- **Mail servers**;
 - **Simple Mail Transfer Protocol (SMTP)**.
 
 When a user A wants to send a message to a user B, A's user agent sends the message to her mail server, where the message is placed in the mail server’s outgoing **message queue**.
@@ -530,23 +564,20 @@ When Bob wants to read a message, his user agent retrieves the message from his 
 How the message goes from A's mail server to B's mail server is defined by SMTP.
 
 SMTP uses TCP to provide reliable transfer of messages.
-It is composed of three phases of transfer:
-- Handshaking;
-- Transfer of messages;
-- Closure.
+It is composed of three phases of transfer: **handshaking**, **transfer of messages**, and **closure**.
 
 A Mail Message uses the following standard text message format:
-- a set of header lines, which may be:
+- A set of header lines, which may be:
   - "From:" (mandatory)
   - "To:" (mandatory)
   - "Date:"
   - "Subject:"
   - "Received:" (added by receiving SMTP server)
-- a blank line;
-- the message body (in 7-bit ASCII)
+- A blank line.
+- The message body (in 7-bit ASCII).
 
 Note that the mailbox of a mail receiver is on a server host, different from the users endpoint.
-Therefore, the user needs a protocol to obtain any received mail from the server.
+Therefore, the user needs a protocol to obtain any received mail from the server.  
 It can't use SMTP, as it is a push protocol.
 Some mail access protocols are:
 - POP: Post Office Protocol
@@ -567,46 +598,66 @@ It has a rigid hierarchical structure: we scan the address from left to right, a
 Because humans prefer hostnames but machines prefer IP addresses, we need a directory service that translates hostnames to IP addresses.
 This is the main task of the Internet’s **domain name system (DNS)**.
 The DNS is 
-- a distributed database implemented in a hierarchy of DNS servers;
-- an application-layer protocol that allows hosts to query the distributed database.
+
+- A distributed database implemented in a hierarchy of DNS servers;
+- An application-layer protocol that allows hosts to query the distributed database.
+
 The DNS servers are often UNIX machines running the Berkeley Internet Name Domain (BIND) software. 
 
 The DNS protocol runs over UDP and uses port 53.
 
 On top of the standard translation service, DNS is also responsible for:
-- **Host aliasing**: A host with a complicated hostname can have one or more alias names. The original hostname is said to be a **canonical hostname**.
+- **Host aliasing**:
+  A host with a complicated hostname can have one or more alias names.
+  The original hostname is said to be a **canonical hostname**.
 - **Mail server aliasing** 
-- **Load distribution**: Busy sites are replicated over multiple servers, each server on a different end system with a different IP address. For replicated Web servers, a set of IP addresses is thus associated with one alias hostname. The DNS database contains this set of IP addresses. When clients make a DNS query for a name mapped to a set of addresses, the server responds with the entire set of IP addresses, but rotates the ordering of the addresses within each reply. Because a client typically sends its HTTP request message to the IP address that is listed first in the set, DNS rotation distributes the traffic among the replicated servers.
+- **Load distribution**:
+  Busy sites are replicated over multiple servers, each server on a different end system with a different IP address.
+  For replicated Web servers, a set of IP addresses is thus associated with one alias hostname.
+  The DNS database contains this set of IP addresses.
+  When clients make a DNS query for a name mapped to a set of addresses, the server responds with the entire set of IP addresses, but rotates the ordering of the addresses within each reply.
+  Because a client typically sends its HTTP request message to the IP address that is listed first in the set, DNS rotation distributes the traffic among the replicated servers.
 
 ### Overview of How DNS Works
 
 A simple design for DNS would have one DNS server that contains all the mappings.
 This has the following problems:
-- Single point of failure;
-- Traffic volume;
-- Distance centralized database;
+- Single point of failure.
+- Traffic volume.
+- Distance to the centralized database.
 - Maintenance issues.
 
 In summary, a centralized database **doesn't scale**.
 
-In order to deal with the issue of scale, the DNS uses a large number of servers, organized in a hierarchical fashion and distributed around the world.
-No single DNS server has all of the mappings for all of the hosts in the Internet.
-Instead, the mappings are distributed across the DNS servers.
-To a first approximation, there are three classes of DNS servers, organized in a hierarchy:
-- root DNS servers: there are more than 1000 root servers instances scattered all over the world. These are copies of 13 different root servers.
-- top-level domain (TLD) DNS servers: for each of the top-level domains (such as com, org, net, edu, gov, all the country codes, and others) there is a TLD server.
-- authoritative DNS servers: every organization with publicly accessible hosts on the Internet must provide publicly accessible DNS records that map the names of those hosts to IP addresses. An organization can choose to implement its own authoritative DNS server to hold these records; alternatively, the organization can pay to have these records stored in an authoritative DNS server of some service provider. Most universities and large companies implement and maintain their own primary and secondary (backup) authoritative DNS server.
+In order to deal with the issue of scale, the DNS uses a large number of servers, organized in a hierarchical fashion and distributed around the world.  
+There are three classes of DNS servers, organized in a hierarchy:
+- **Root DNS servers**: 
+  There are more than 1000 root servers instances scattered all over the world.
+  These are copies of 13 different root servers.
+- **Top-level domain (TLD) DNS servers**:
+  For each of the top-level domains (such as com, org, net, edu, gov, all the country codes, and others) there is a TLD server.
+- **Authoritative DNS servers**:
+  Every organization with publicly accessible hosts on the Internet must provide publicly accessible DNS records that map the names of those hosts to IP addresses.
+  An organization can choose to implement its own authoritative DNS server to hold these records; alternatively, the organization can pay to have these records stored in an authoritative DNS server of some service provider.
+  Most universities and large companies implement and maintain their own primary and secondary (backup) authoritative DNS server.
 
-There is another important type of DNS server called the local DNS server, also called the **default name server**.
+There is another important type of DNS server called the **local DNS server**, also called the **default name server**.
 A local DNS server does not strictly belong to the hierarchy of servers but is nevertheless central to the DNS architecture.
 Each ISP has a local DNS server, which acts as a proxy for any DNS communication between two hosts. 
 When a host connects to an ISP, the ISP provides the host with the IP addresses of one or more of its local DNS servers.
 
+#### DNS Queries
+
 DNS queries can be of two types:
-- **Iterative query**: if contacted server doesn't know the mapping for the required hostname, it replies with the name of another server to contact ("I don’t know this name, but ask this server") - burden is always on the client;
-- **Recursive query**: if contacted server doesn't know the mapping for the required hostname, it will ask another server for it - burden on the server.
+
+- **Iterative query**: 
+  If a contacted server doesn't know the mapping for the required hostname, it replies with the name of another server to contact ("I don’t know this name, but ask this server") - burden is always on the client.
+- **Recursive query**: 
+  If contacted server doesn't know the mapping for the required hostname, it will ask another server for it - burden on the server.
 
 Generally, the query from the requesting host to the local DNS server is recursive, while the remaining queries are iterative.
+
+#### DNS Caching
 
 DNS extensively exploits **DNS caching** in order to improve the delay performance and to reduce the number of DNS messages ricocheting around the Internet.
 In a query chain, when a DNS server receives a DNS reply, it can cache the mapping in its local memory.
@@ -617,37 +668,40 @@ These cache entries obviously can't be kept indefinitely: they usually disappear
 The DNS servers store **resource records (RRs)**, including RRs that provide hostname-to-IP address mappings.
 Each DNS reply message carries one or more resource records.
 
-A resource record is a four-tuple that contains the following fields:
+A resource record is a four-tuple that contains the following fields: ```(Name, Value, Type, TTL)```
 
-(Name, Value, Type, TTL)
+`TTL` is the **Time To Live** of the resource record; it determines when a resource should be removed from a cache.
 
-TTL is the time to live of the resource record; it determines when a resource should be removed from a cache.
+The meaning of `Name` and `Value` depend on Type:
 
-The meaning of Name and Value depend on Type:
-- If Type=A, then Name is a hostname and Value is the IP address for the hostname. Thus, a Type A record provides the standard hostname-to-IP address mapping.
-- If Type=NS, then Name is a domain and Value is the hostname of an authoritative DNS server that knows how to obtain the IP addresses for hosts in the domain. This record is used to route DNS queries further along in the query chain.
-- If Type=CNAME, then Value is a canonical hostname for the alias hostname Name.
-- If Type=MX, then Value is the canonical name of a mail server that has an alias hostname Name. Note that by using the MX record, a company can have the same aliased name for its mail server and for one of its other servers (such as its Web server). To obtain the canonical name for the mail server, a DNS client would query for an MX record; to obtain the canonical name for the other server, the DNS client would query for the CNAME record. 
+- If `Type` is `A`, then `Name` is a hostname and `Value` is the IP address for the hostname. 
+  Thus, a Type A record provides the standard hostname-to-IP address mapping.
+- If `Type` is `NS`, then `Name` is a domain and `Value` is the hostname of an authoritative DNS server that knows how to obtain the IP addresses for hosts in the domain.
+  This record is used to route DNS queries further along in the query chain.
+- If `Type` is `CNAME`, then `Value` is a canonical hostname for the alias hostname `Name`.
+- If `Type` is `MX`, then `Value` is the canonical name of a mail server that has an alias hostname `Name`.
+  Note that by using the MX record, a company can have the same aliased name for its mail server and for one of its other servers (such as its Web server).
+  To obtain the canonical name for the mail server, a DNS client would query for an `MX` record; to obtain the canonical name for the other server, the DNS client would query for the `CNAME` record. 
 
 ### DNS Messages
 
 There are two kinds of DNS messages: **query** and **reply** messages, and they both have the same format:
 
 - **Header section**: the first 12 bytes of the message.
-  The header section has a number of fields.
-  The first field is a 16 bit number that identifies the query.
-  This identifier is copied from a query to it's reply, allowing the client to match them.
-  The second field is the flag field.
-  It has, namely, one bit to representer whether the message is a query (0) or a reply (1).
-  A 1-bit authoritative flag is set in a reply message when a DNS server is an authoritative server for a queried name.
-  A 1-bit recursion-desired flag is set when a client desires that the DNS server perform recursion when it doesn’t have the record.
-  1-bit recursion-available field is set in a reply if the DNS server supports recursion.
-  In the header, there are also four number-of fields. 
-  These fields indicate the number of occurrences of the four types of data sections that follow the header.
+  The header section has a number of fields:
+  - The first field is a 16 bit number that identifies the query.
+    This identifier is copied from a query to it's reply, allowing the client to match them.
+  - The second field is the flag field.
+    - 1-bit to represent the type of message: query (0) or reply (1);
+    - 1-bit indicates when a DNS server is an authoritative server for a queried name;
+    - 1-bit used when a client desires that the DNS server perform recursion.
+    - 1-bit set in a reply if the DNS server supports recursion.
+  - In the header, there are also four number-of fields. 
+    These fields indicate the number of occurrences of the four types of data sections that follow the header.
 
 - **Question section**:
   Contains information about the query that is being made.
-  This section includes (1) a name field that contains the name that is being que- ried, and (2) a type field that indicates the type of question being asked.
+  This section includes (1) a name field that contains the name that is being queried, and (2) a type field that indicates the type of question being asked.
 
 - **Answer section**:
   In a reply from a DNS server, the answer section contains the resource records for the name that was originally queried.
@@ -659,9 +713,11 @@ There are two kinds of DNS messages: **query** and **reply** messages, and they 
 - **Additional section**:
   Other helpful records.
 
+![DNS message format](./figs/dns_message.png)
+
 ### Inserting Records into the DNS Database
 
-When a new domain name is created, in order for it to be registered in the DNS, a **registrar** needs to verify it's uniqueness and enter it into the DNS database (collecting a fe for its services).
+When a new domain name is created, in order for it to be registered in the DNS, a **registrar** needs to verify it's uniqueness and enter it into the DNS database (collecting a fee for its services).
 When a domain name is registered, the IP addresses of it's primary and secondary authoritative DNS servers need to be provided.
 For each of these two DNS servers, the registrar would then enter into the TLD servers a Type NS and a Type A record.
 The creator should then make sure that a Type A resource record for it's Web server and the Type MX resource record for it's mail server are entered into it's authoritative DNS server.
@@ -681,13 +737,13 @@ Some attacks that have been tried against DNS are:
 ## Peer-to-Peer File Distribution
 
 In this section, we consider a very natural P2P application, namely, distributing a large file from a single server to a large number of hosts (called peers).
-In client-server file distribution, the server must send a copy of the file to each of the peers—placing an enormous burden on the server and consuming a large amount of server bandwidth.
+In client-server file distribution, the server must send a copy of the file to each of the peers - placing an enormous burden on the server and consuming a large amount of server bandwidth.
 In P2P file distribution, each peer can redistribute any portion of the file it has received to any other peers, thereby assisting the server in the distribution process.
 
 Peer-to-Peer file distribution is much more scalable than client-server file distribution.
 If we assume:
-- a network with abundant bandwith in it's core;
-- a server and $N$ clients which are only participating in this transition, and no other network applications, having:
+- A network with abundant bandwidth in it's core;
+- A server and $N$ clients which are only participating in this transition, and no other network applications, having:
   - $u_s$ upload speed for the server;
   - $u_i$ upload speed and $d_i$ download speed for each of the $N$ clients ($i \in \{1,...,n\}$);
   - a file of size $F$
