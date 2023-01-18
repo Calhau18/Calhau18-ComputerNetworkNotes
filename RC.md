@@ -668,7 +668,7 @@ These cache entries obviously can't be kept indefinitely: they usually disappear
 The DNS servers store **resource records (RRs)**, including RRs that provide hostname-to-IP address mappings.
 Each DNS reply message carries one or more resource records.
 
-A resource record is a four-tuple that contains the following fields: ```(Name, Value, Type, TTL)```
+A resource record is a four-tuple that contains the following fields: `(Name, Value, Type, TTL)`
 
 `TTL` is the **Time To Live** of the resource record; it determines when a resource should be removed from a cache.
 
@@ -766,22 +766,22 @@ A transport-layer protocol provides for **logical communication** between applic
 The transport-layer is then responsible for converting application-layer messages into transport-layer **segments**.
 
 The transport-layer's services are conditioned by the network-layer.
-The Internet’s network-layer protocol has a name - IP, for Internet Protocol. 
-IP provides logical communication between hosts.
+The Internet’s network-layer protocol has a name - IP, provides logical communication between hosts.
 The IP service model is a **best-effort delivery service**. 
-This means that IP makes its “best effort” to deliver segments between communicating hosts, but it makes no guarantees.
+This means that IP makes its "best effort" to deliver segments between communicating hosts, but it makes no guarantees.
 In particular, it does not guarantee:
-- segment delivery;
-- orderly delivery of segments;
-- integrity of the data in the segments.
+
+- Segment delivery.
+- Orderly delivery of segments.
+- Integrity of the data in the segments.
 
 For these reasons, IP is said to be an unreliable service.
 
 The most fundamental responsibility of UDP and TCP is to extend IP’s delivery service between two end systems to a delivery service between two processes running on the end systems.
-Extending host-to-host delivery to process-to-process delivery is called transport-layer **multiplexing** and **demultiplexing**.
-UDP and TCP also provide integrity checking by including error-detection fields in their segments’ headers.
+Extending host-to-host delivery to process-to-process delivery is called transport-layer **multiplexing** and **demultiplexing**.  
+UDP and TCP also provide **integrity checking** by including error-detection fields in their segments’ headers.
 
-These two minimal transport-layer services are the only two services that UDP provides.
+These two minimal transport-layer services are the only two services that UDP provides.  
 TCP, on the other hand, converts IP’s unreliable service between end systems into a reliable data transport service between processes.
 TCP also provides **congestion control**.
 
@@ -814,29 +814,23 @@ It has the following advantages:
 - **No connection state** allows a server to support more active clients;
 - **Small packet header overhead**.
 
-Common applications that run over UDP are **DNS**, **SNMP**, **HTTP/3** and multimedia applications such as Internet phone, real-time video conferencing and streaming of stored audio and video.
+Common applications that run over UDP are **DNS**, **SNMP**, **HTTP/3** and multimedia applications such as Internet phone, real-time video conferencing and streaming of stored audio and video.  
 Often, these applications might implement reliability themselves, enjoying UDP's advantages while having more guarantees.
 
 An UDP segment is composed of the following fields:
 
-- an header with four fields:
-  - **source port** number
-  - **destination port** number
-  - **length** of the data field
-  - **checksum**, used for error-checking
-- the **data field**, with the application message
+- An header with four fields:
+  - **Source port** number
+  - **Destination port** number
+  - **Length** of the data field
+  - **Checksum**, used for error-checking
+- The **data field**, with the application message
 
 The checksum field is obtained by splitting the segment in a sequence of 16-bit values and adding them as 16-bit integers (considering overflow).
 The receiver needs to compute the checksum of the data field similarly. 
-If these values differ, then there was an error.
-Note that UDP does not have error correction, only error detection.
+If these values differ, then there was an error (there is no procedure for recovery).
 
 ## Principles of Reliable Data Transfer
-
-It is the responsibility of a reliable data transfer protocol to implement this service abstraction.
-This task is made difficult by the fact that the layer below the reliable data transfer protocol may be unreliable.
-
-We'll step through a series of protocols, each one becoming more complex, arriving at a flawless, reliable data transfer protocol.
 
 ### Building a Reliable Data Transfer Protocol
 
@@ -891,7 +885,7 @@ Suppose now that in addition to corrupting bits, the underlying channel can lose
 packets as well.
 
 One possible approach would be the sender wait until it is sure that a packet must've been lost (either the one it sent, or the response).
-The problems it this approach is that it is hard to estimate a worst-case response time, much less know for sure.
+The problem with this approach is that it is hard to estimate a worst-case response time, much less know for sure.
 Moreover, the protocol should ideally recover from packet loss as soon as possible.
 
 The approach thus adopted in practice is for the sender to judiciously choose a time value such that packet loss is likely, although not guaranteed, to have happened.
@@ -907,7 +901,7 @@ interrupt the sender after a given amount of time has expired.
 
 The protocols seen above display very poor performance.
 In order to send a message of $L$ bits at a rate of $R$ bits/sec, the sender will only be using the sending channel $\frac{L/R}{RTT + L/R}$ of the time.
-For long distances between hosts, this can be an extremely low fraction.
+For long distances between hosts, this can be an extremely low.
 
 To improve performance, RDT protocols use **pipelining**.
 Pipelining requires increasing the range of sequence numbers and buffering packets both at the sender and at the receiver.
@@ -950,14 +944,17 @@ Particularly, if the range of numbers allowed for the sequence numbers and windo
 ## Connection Oriented Transport: TCP
 
 TCP, as a service is:
-- **connection-oriented**: two processes must "handshake" before communicating;
-- **reliable and in-order**;
-- **full-duplex**: data flow is bi-directional;
-- **point-to-point**: between a single sender and a single receiver;
+- **Connection-oriented**: 
+  Two processes must "handshake" before communicating.
+- **Reliable and in-order**.
+- **Full-duplex**: 
+  Data flow is bi-directional.
+- **Point-to-point**: 
+  Between a single sender and a single receiver.
 
 ### TCP Segment Structure
 
-![TCP segment structure](.figs/tcp_segment.png)
+![TCP segment structure](./figs/tcp_segment.png)
 
 A brief look at the segment's fields:
 - The **source and destination port numbers** are used for multiplexing/demultiplexing data from/to upper-layer applications;
@@ -966,7 +963,7 @@ A brief look at the segment's fields:
 - The 16-bit **receive window** field is used for flow control;
 - The **checksum** field is used for error detection;
 - The optional and variable-length **options** field is used when a sender and receiver negotiate the maximum segment size (MSS) or as a window scaling factor for use in high-speed networks;
-- The **flag** field contains 6 bits:
+- The **flag** field contains:
   - The **ACK** bit is used to indicate that the value carried in the acknowledgment field is valid;
   - The **RST**, **SYN**, and **FIN** bits are used for connection setup and teardown;
   - The **CWR** and **ECE** bits are used in explicit congestion notification;
@@ -975,74 +972,52 @@ A brief look at the segment's fields:
 
 #### Sequence and Acknowledgment numbers
 
-TCP views data as an unstructured, but ordered, stream of bytes.
-TCP’s use of sequence numbers reflects this view in that sequence numbers are over the stream of transmitted bytes and not over the series of transmitted segments.
-The sequence number for a segment is therefore the byte-stream number of the first byte in the segment.
-
-The acknowledgment number that Host A puts in its segment is the sequence number of the next byte Host A is expecting from Host B.
+The *sequence number* for a segment is therefore the byte-stream *number of the first byte in the segment*.  
+The *acknowledgment number* that Host A puts in its segment is the sequence *number of the next byte* Host A is expecting from Host B.  
 Because TCP only acknowledges bytes up to the first missing byte in the stream, TCP is said to provide **cumulative acknowledgments**.
 
 The TCP RFCs do not impose any rules on what a receiver should do with out-of-order received segments.
-The programmer can obt between discarding such segments, or keeping them until the expected segments are received.
-
-### Round-Trip Time Estimation and Timeout
-
-TCP estimates the RTT from sample RTT according to the formula
-$$
-\text{EstimatedRTT} = (1-\alpha) \cdot \text{EstimatedRTT} + \alpha \cdot \text{SampleRTT}
-$$
-This performs an average of the sample RTTs, giving exponentially less value to older samples.
-The value of $\alpha$ is usually set to 0.125.
-
-TCP also has a measure of the variability of the RTT.
-$$
-\text{DevRTT} = (1 – \beta) \cdot \text{DevRTT} + \beta \cdot | \text{SampleRTT} – \text{EstimatedRTT} |
-$$
-The value of $\beta$ is usually $0.25$.
-
-TCP determines the value for retransmission timeout interval as:
-$$
-\text{TimeoutInterval} = \text{EstimatedRTT} + 4 \cdot \text{DevRTT}
-$$
-An initial $\text{TimeoutInterval}$ value of 1 second is recommended.
-Also, when a timeout occurs, the value of $\text{TimeoutInterval}$ is doubled to avoid a premature timeout occurring for a subsequent segment that will soon be acknowledged.
-However, as soon as a segment is received and $\text{EstimatedRTT}$ is updated, the $\text{TimeoutInterval}$ is again computed using the formula above.
+The programmer can opt between discarding such segments, or keeping them until the expected segments are received.
 
 ### TCP Connection Establishment
 
 In order to establish a connection, TCP performs a **three-way handshake**:
 1. The client-side TCP first sends a **SYN segment** to the server-side TCP (segment with the SYN bit set to 1).
   In addition, the client randomly chooses an initial sequence number (`client_isn`) and puts this number in the sequence number field of the initial TCP SYN segment.
+
 2. Once the SYN segment arrives at the server host, the host allocates the TCP buffers and variables to the connection, and sends a connection-granted segment to the client TCP.
   This segment has the SYN bit set, the acknowledgment field set to `client_isn+1`, and a sequence number `server_isn` value in the sequence number field.
+
 3. Upon receiving the SYNACK segment, the client also allocates buffers and variables to the connection.
   The client host then sends the server yet another segment, acknowledging the server’s connection-granted segment.
   The SYN bit is set to zero, since the connection is established.
   This third stage of the three-way handshake may carry client-to- server data in the segment payload.
+
+// TODO: variable and buffer allocation
 
 ### TCP Message Sending
 
 Once a TCP connection is established, the two application processes can send data to each other.
 To do so, the client process passes a stream of data through the socket into the connection’s **send buffer**.
 From time to time, TCP will grab chunks of data from the send buffer and pass the data to the network layer.
-The maximum amount of data that can be grabbed and placed in a segment is limited by the **maximum segment size (MSS)**.
+
+The maximum amount of data that can be grabbed and placed in a segment is limited by the **maximum segment size (MSS)**, which in turn is limited my the **maximum transmission unit (MTU)** - the length of the largest link-layer frame that can be sent.
 
 When TCP receives a segment at the other end, the segment’s data is placed in the TCP connection’s receive buffer.
 The application reads the stream of data from this buffer.
 Each side of the connection has its own send buffer and its own receive buffer.
 
-#### Reliable Data Transfer
+### TCP Reliable Data Transfer
 
-TCP creates a reliable data transfer service on top of the unreliable service offered by IP, using:
-- **sliding window**;
-- **cumulative ACKs**;
-- a single **retransmission timer**.
+TCP creates a reliable data transfer service on top of the unreliable service offered by IP, using a **sliding window** protocol with **cumulative ACKs** and a  single **retransmission timer**.
 
-Retransmission are triggered by either timeout events or duplicate ACKs.
-Duplicate ACKs prevent the sender from waiting for exponentially longer timeout expirations.
+Retransmission is triggered by either a timeout event or duplicate ACKs, which prevent the sender from waiting for timeout expirations.
+
 Because a sender often sends a large number of segments back to back, if one segment is lost, there will likely be many back-to-back duplicate ACKs.
 If the TCP sender receives three duplicate ACKs for the same data, it takes this as an indication that the segment following the segment that has been ACKed three times has been lost.
 In the case that three duplicate ACKs are received, the TCP sender performs a **fast retransmit**, retransmitting the missing segment before that segment’s timer expires.
+
+// TODO: review and rethink this
 
 #### Go-Back-N or Selective Repeat?
 
@@ -1053,10 +1028,41 @@ A proposed modification to TCP, the so-called selective acknowledgment , allows 
 
 In the end, TCP’s error-recovery mechanism is probably best categorized as a hybrid of GBN and SR protocols.
 
+#### RTT Estimation and Timeout
+
+TCP estimates the RTT from sample RTT according to the formula
+
+$$
+\text{EstimatedRTT} = (1-\alpha) \cdot \text{EstimatedRTT} + \alpha \cdot \text{SampleRTT}
+$$
+
+This performs an average of the sample RTTs, giving exponentially less value to older samples.  
+The value of $\alpha$ is usually set to 0.125.
+
+TCP also has a measure of the variability of the RTT.
+
+$$
+\text{DevRTT} = (1 – \beta) \cdot \text{DevRTT} + \beta \cdot | \text{SampleRTT} – \text{EstimatedRTT} |
+$$
+
+The value of $\beta$ is usually $0.25$.
+
+TCP determines the value for retransmission timeout interval as:
+
+$$
+\text{TimeoutInterval} = \text{EstimatedRTT} + 4 \cdot \text{DevRTT}
+$$
+
+An initial $\text{TimeoutInterval}$ value of 1 second is recommended.
+Also, when a timeout occurs, the value of $\text{TimeoutInterval}$ is doubled to avoid a premature timeout occurring for a subsequent segment that will soon be acknowledged.
+However, as soon as a segment is received and $\text{EstimatedRTT}$ is updated, the $\text{TimeoutInterval}$ is again computed using the formula above.
+
 ### Flow Control
 
 TCP provides flow control by having the sender maintain a variable called the **receive window**.
 Informally, the receive window is used to give the sender an idea of how much free buffer space is available at the receiver.
+
+// TODO: adapt this after above changes
 
 ### TCP Connection Closure
 
@@ -1064,13 +1070,16 @@ When a host wants to close a TCP connection, it sends a segment with the FIN bit
 The corresponding host sends a response with the ACK bit set, acknowledging the intention to close the connection.
 It further sends a similar segment with the FIN bit set, to which the closure initiator responds with an acknowledgment as well.
 
+// TODO: It probably deallocates stuff
+
 ## Principles of Congestion Control
 
 When thinking about congestion control, one should be aware of:
-- the throughput of communication can never exceed the capacity at each point in the route;
-- as the throughput reaches capacity, the delay of messages will increase indefinitely, as packets get stuck in long queues;
-- loss and consequent retransmission of packets further decreases the effective throughput - namely, unnecessary duplications (due to delays higher than the timeout value) are particularly harmful;
-- a single point of failure (say, a single router performing high loads of work) may put to waste the rest of the network's work.
+
+- The throughput of communication can never exceed the capacity at each point in the route.
+- As the throughput reaches capacity, the delay of messages will increase indefinitely, as packets get stuck in long queues.
+- Loss and consequent retransmission of packets further decreases the effective throughput - namely, unnecessary duplications (due to delays higher than the timeout value) are particularly harmful.
+- A single point of failure (say, a single router performing high loads of work) may put to waste the rest of the network's work.
 
 There are two broad approaches to congestion control:
 - **End-to-end congestion control**: 
@@ -1083,35 +1092,36 @@ There are two broad approaches to congestion control:
 
 ### Classic TCP Congestion Control
 
+// TODO: review this after reviewing reliability
+
 TCP limits a sender's rate by having a variable, the **congestion window** (`cwnd`), that limits the amount of unacknowledged bytes that a client might send into the network.
 This limits the client's sending rate at $\frac{\text{cwnd}}{\text{RTT}}$.
 The value of `cwnd` is adjusted by the sender in function of the perceived network congestion.
 
-A sender may get a sense of a network's congestion by the amount of sent packets that are not acknowledged, or acknowledged after a timeout.
-
-TCP uses acknowledgments to trigger (or clock) its increase in congestion window size.
-Therefore, TCP is said to be **self-clocking**.
-
 TCP uses the following guiding principles:
-- A lost segment implies congestion, and hence, the TCP sender’s rate should be decreased when a segment is lost;
+
+- A lost segment implies congestion, and hence, the TCP sender’s rate should be decreased when a segment is lost.
+  TCP defines a **loss event** as segment that is not ACKed before a timeout, or is ACKed three consecutive times.
 - An acknowledged segment indicates that the network is delivering the sender’s segments to the receiver, and hence, the sender’s rate can be increased.
-- Bandwidth probing: The TCP sender increases its transmission rate to probe for the rate that at which congestion onset begins, backs off from that rate, and then to begins probing again to see if the congestion onset rate has changed.
+  TCP is said to be **self-clocking** since it uses acknowledgments to trigger (or clock) its increase in congestion window size.
+- Bandwidth probing: The TCP sender increases its transmission rate to probe for the rate that at which congestion is felt, backs off from that rate, and then to begins probing again to see if the congestion onset rate has changed.
 
 #### Slow Start
 
 When a TCP connection begins, the value of `cwnd` is typically initialized to a small value of 1 MSS, resulting in an initial sending rate of roughly $\text{MSS}/\text{RTT}$.
 Since the available bandwidth to the TCP sender may be much larger than this, the TCP sender would like to find the amount of available bandwidth quickly.
+
 Thus, in the slow-start state, the value of `cwnd` begins at 1 MSS and increases by 1 MSS every time a transmitted segment is first acknowledged.
 This process results in a doubling of the sending rate every RTT.
 
 When the sender registers a loss event, it cannot keep doubling the congestion window value:
 - If the sender registers a *timeout*, it restarts the slow start process, setting `cwnd` to 1.
-  It also sets the value of a second state variable, ssthresh (short- hand for “slow start threshold”) to `cwnd/2`.
+  It also sets the value of a second state variable, `ssthresh` (short-hand for “slow start threshold”) to `cwnd/2`.
 - If the sender registers a *triple ACK*, it moves into congestion avoidance mode.
 
 #### Congestion Avoidance
 
-A common approach for congestion avoidance is for the TCP sender to increase `cwnd` by MSS bytes
+A common approach for congestion avoidance is for the TCP sender to increase `cwnd` by MSS bytes every time it receives an ACK.
 This linear increase stops in the same way as the slow-start phase.
 However, for triple-ACK loss events, it does not remain in congestion avoidance mode: it sets `cwnd` and `ssthresh` to `cwnd/2` and moves into fast-recovery state.
 
@@ -1119,6 +1129,7 @@ However, for triple-ACK loss events, it does not remain in congestion avoidance 
 
 In fast recovery, the value of `cwnd` is increased by 1 MSS for every duplicate ACK received for the missing segment that caused TCP to enter the fast-recovery state.
 Eventually, when an ACK arrives for the missing segment, TCP enters the congestion-avoidance state after deflating `cwnd`.
+
 If a timeout event occurs, fast recovery transitions to the slow-start state after performing the same actions as in slow start and congestion avoidance: The value of `cwnd` is set to 1 MSS, and the value of `ssthresh` is set to half the value of `cwnd` when the loss event occurred.
 
 Fast recovery is a recommended, but not required, component of TCP.
@@ -1147,15 +1158,17 @@ At the network layer, two bits in the Type of Service field of the IP datagram h
 #### Delay-based Congestion Control
 
 In TCP Vegas, the sender measures the RTT of the source-to-destination path for all acknowledged packets.
+
 Let $RTT_{min}$ be the minimum of these measurements at a sender - the throughput that would be experienced in a near uncongested network.
 In such a network, the throughput would be $\frac{\text{cwnd}}{RTT_{min}}$.
+
 This version of TCP thus opts to increase `cwnd` linearly when the measured throughput is close to uncongested throughput, and decrease it linearly when it is far below it.
 
 TCP Vegas operates under the intuition that TCP senders should "Keep the pipe just full, but no fuller".
 
 #### Fairness
 
-We say a congestion control mechanism is **fiar** if the average transmission rate of each of $K$ different connections is approximately $R/K$ ($R$ is the transmission rate of the network's bottleneck link).
+We say a congestion control mechanism is **fair** if the average transmission rate of each of $K$ different connections is approximately $R/K$ ($R$ is the transmission rate of the network's bottleneck link).
 In an idealized scenario where we assume there is no UDP traffic and every TCP connection is sending a big file, it can be proven that TCP does converge to a fair state. 
 
 In practice, these conditions are typically not met, and client-server applications can thus obtain very unequal portions of link bandwidth.
@@ -1172,6 +1185,7 @@ QUIC is a new application-layer protocol designed from the ground up to improve 
 QUIC, using UDP as its underlying transport-layer protocol, is designed to interface above specifically to a simplified but evolved version of HTTP/2. 
 In the near future, HTTP/3 will natively incorporate QUIC.
 Some of its major features include:
+
 - **Connection-Oriented and Secure**;
 - **Streams**: 
   Multiple application-level “streams” multiplexed over single QUIC connection
@@ -1524,7 +1538,7 @@ However, it is extensively used to direct DNS queries to the closest root DNS se
 
 // TODO: broadcasting, multicasting, spanning trees
 
-# The Link Layer and LANs
+# Chapter 5: The Link Layer and LANs
 
 In this chapter we'll refer to any device that runs a link-layer protocol as a **node**.
 Nodes include hosts, routers, switches, and WiFi access points.
@@ -1837,35 +1851,36 @@ This ensures that if an active path or device fails, a new spanning tree can be 
 
 // TODO
 
-# Wireless and Mobile Networks
-
-## Wireless LANs
+# Chapter 6: Wireless Networks
 
 We identify the following relevant elements in a wireless network:
-- **wireless host**: the end-system devices that run applications;
-- **base station**: responsible for coordinating the transmission of data between one or more associated wireless hosts and the network infrastructure;
-- **wireless links**: used to connect wireless hosts to its associated base stations.
+
+- **Wireless host**: the end-system devices that run applications.
+- **Base station**: responsible for coordinating the transmission of data between one or more associated wireless hosts and the network infrastructure.
+- **Wireless links**: used to connect wireless hosts to its associated base stations.
 
 We say a wireless network is **infrastructure-based** or in **infrastructure mode** if there is a base station in the network.
 A wireless network could alternatively be **infrastructure-less**.
 In this case, nodes can only transmit to other nodes within link coverage.
 The nodes organize themselves into a network and route among themselves.
 
-Wireless networks are also distinguished between **single-hop** and **multi-hop** networks, depending on whether a packet in the wireless network may only cross exactly one wireless hop, or if it is allowed to perform multiple wireless hops.
+Wireless networks are also distinguished between **single-hop** and **multi-hop** networks, depending on whether a packet in the wireless network is allowed to cross exactly one wireless hop, or multiple wireless hops.
 
 Wireless communications allow current devices to:
-- communicate while moving;
-- communicate in places where it is difficult, or impossible, to implement a cabled infrastructure;
-- communicate in networks that can be installed easily, fast, and at a low cost;
+
+- Communicate while moving.
+- Communicate in places where it is difficult, or impossible, to implement a cabled infrastructure.
+- Communicate in networks that can be installed easily, fast, and at a low cost.
 
 Nevertheless, it has some disadvantages. 
 Namely, wireless links have to deal with:
-- **Decreasing signal strength**;
-- **Interference from other sources**;
+
+- **Decreasing signal strength**.
+- **Interference from other sources**.
 - **Multipath propagation**.
 
-Due to these reasons, a host receiving a wireless message will have to decode an eletromagnetic signal signal that is a combination of a degraded form of the original signal transmitted by the sender and background noise in the environment.
-The **signal-to-noise ratio (SNR)** is a relative measure of the strength of the received signal and this noise.
+Due to these reasons, a host receiving a wireless message will have to decode an eletromagnetic signal that is a combination of a degraded form of the original signal transmitted by the sender and background noise in the environment.
+The **signal-to-noise ratio (SNR)** is a relative measure of the strength of the received signal and this noise.  
 It is important to analyze the relation of the SNR with the **bit error rate (BER)** and the rate of transmission.
 It is clear that a higher SNR will dictate a higher BER as well.
 We also observe that a higher transmission rate leads to a higher BER.
@@ -1874,30 +1889,40 @@ Devices often adopt **rate adaptation** to choose the modulation technique to us
 Wired and wireless networks also differ in the ways different hosts communicate.
 While hosts in a wired network all receive the transmissions from all other nodes, in the case of wireless links that may not happen.
 Two examples of situations where this does not happen are:
-- The **hidden terminal problem**: hosts A and C are communicating, but there is a physical medium in between them. Host B is able to communicate with both, and thus would be able to route the communication.
-- The **signal attenuation problem**: hosts A and C are communicating, but they are not within link reach of each other. Host B is within link reach of both A and C, and thus would be able to route the communication.
+
+- The **hidden terminal problem**: 
+  Hosts A and C are communicating, but there is a physical medium in between them.
+  Host B is able to communicate with both, and thus would be able to route the communication.
+- The **signal attenuation problem**:
+  Hosts A and C are communicating, but they are not within link reach of each other.
+  Host B is within link reach of both A and C, and thus would be able to route the communication.
+
+## The 802.11 Wireless LAN Protocol: WiFi
+
+The **IEEE 802.11 wireless LAN** standard, also known as **WiFi** is the most common wireless standard in use nowadays, by some margin.
 
 ### The 802.11 Wireless LAN Architecture
 
-The **IEEE 802.11 wireless LAN** standard, also known as **WiFi** is the most common wireless standard in use nowadays, by some margin.
 The fundamental building block of the 802.11 architecture is the **basic service set (BSS)**.
-A BSS contains one or more wireless stations and a central **base station**, known as an **access point (AP)** in 802.11 parlance.
+A BSS contains one or more wireless stations and a central **base station**, known as an **access point (AP)**.
 In a typical home network, there is one AP and one router (typically integrated together as one unit) that connects the BSS to the Internet.
 
-In 802.11, each wireless station needs to associate with an AP before it can send or receive network-layer data.
+In 802.11, each wireless station needs to associate with an AP before it can send or receive network-layer data.  
 When a network administrator installs an AP, the administrator assigns a one- or two-word **Service Set Identifier (SSID)** to the access point.
 The administrator must also assign a channel number to the AP.
 To gain Internet access, a wireless device needs to join exactly one of the subnets and hence needs to associate with exactly one AP.
+
 The wireless device finds out about the various APs within its range through **beacon frames**, periodically sent by the APs, containing its SSID and MAC address.
-The 802.11 standard does not specify an algorithm for selecting which of the available APs to associate with; that algorithm is left up to the designers of the 802.11 firmware and software in your wireless device. 
+The 802.11 standard does not specify an algorithm for selecting which of the available APs to associate with: that algorithm is left up to the designers of the 802.11 firmware and software in the wireless device. 
 Typically, the device chooses the AP whose beacon frame is received with the highest signal strength.
 In order to create an association with a particular AP, the wireless device may be required to authenticate itself to the AP.
-
 The process of scanning channels and listening for beacon frames is known as **passive scanning**.
+
 A wireless device can also perform **active scanning**, by broadcasting a probe frame that will be received by all APs within the wireless device’s range.
 APs respond to the probe request frame with a probe response frame.
 The wireless device can then choose the AP with which to associate from among the responding APs.
 After selecting the AP with which to associate, the wireless device sends an association request frame to the AP, and the AP responds with an association response frame.
+
 Once associated with an AP, the device will want to join the subnet to which the AP belongs.
 Thus, the device will typically send a DHCP discovery message into the subnet via the AP in order to obtain an IP address on the subnet.
 
@@ -1912,10 +1937,10 @@ The 802.11 standard use the **CSMA/CA** protocol (carrier sense multiple access 
 
 ![The 802.11 frame](./figs/wifi_frame.png)
 
-The most striking difference in the 802.11 frame is that it has four address fields, each of which can hold a 6-byte MAC address.
+A 802.11 frame is very similar to an Ethernet frame, with the most striking difference being that the 802.11 frame has four address fields, each of which can hold a 6-byte MAC address.
 Three address fields are needed for internetworking purposes - specifically, for moving the network-layer datagram from a wireless station through an AP to a router interface:
-- Address 2 is the MAC address of the station that transmits the frame;
 - Address 1 is the MAC address of the wireless station that is to receive the frame;
+- Address 2 is the MAC address of the station that transmits the frame;
 - Address 3 is the MAC address of the router interface to which the AP is attached;
 - Address 4 is used when APs forward frames to each other in ad hoc mode.
 
@@ -1923,11 +1948,11 @@ Three address fields are needed for internetworking purposes - specifically, for
 
 As we've seen before, the 802.11 standard allows for rate adaptation.
 
-802.11 further provides power-management capabilities:
+802.11 further provides **power-management** capabilities:  
 A node is able to explicitly alternate between sleep and wake states.
 A node indicates to the access point that it will be going to sleep.
-A timer in the node is then set to wake up the node just before the AP is scheduled to send its beacon frame
-Since the AP knows from the set power-transmission bit that the node is going to sleep, the AP knows that it should not send any frames to that node, and will buffer any frames destined for the sleeping host for later transmission.
+A timer in the node is then set to wake up the node just before the AP is scheduled to send its beacon frame.  
+Since the AP knows from the set power-transmission bit that the node is going to sleep, the AP knows that it should not send any frames to that node, and will buffer any frames destined for the sleeping host for later transmission.  
 A node will wake up just before the AP sends a beacon frame, and quickly enter the fully active state.
 The beacon frames sent out by the AP contain a list of nodes whose frames have been buffered at the AP.
 If there are no buffered frames for the node, it can go back to sleep.
