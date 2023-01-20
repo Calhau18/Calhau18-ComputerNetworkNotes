@@ -982,18 +982,14 @@ The programmer can opt between discarding such segments, or keeping them until t
 ### TCP Connection Establishment
 
 In order to establish a connection, TCP performs a **three-way handshake**:
-1. The client-side TCP first sends a **SYN segment** to the server-side TCP (segment with the SYN bit set to 1).
-  In addition, the client randomly chooses an initial sequence number (`client_isn`) and puts this number in the sequence number field of the initial TCP SYN segment.
+1. The client-side TCP first sends a **SYN segment** to the server-side TCP (segment with the SYN bit set to 1) with a randomly chosen sequence number (`client_isn`) in the sequence number field.
 
 2. Once the SYN segment arrives at the server host, the host allocates the TCP buffers and variables to the connection, and sends a connection-granted segment to the client TCP.
   This segment has the SYN bit set, the acknowledgment field set to `client_isn+1`, and a sequence number `server_isn` value in the sequence number field.
 
 3. Upon receiving the SYNACK segment, the client also allocates buffers and variables to the connection.
   The client host then sends the server yet another segment, acknowledging the server’s connection-granted segment.
-  The SYN bit is set to zero, since the connection is established.
-  This third stage of the three-way handshake may carry client-to- server data in the segment payload.
-
-// TODO: variable and buffer allocation
+  The SYN bit is set to zero, and the payload field may already carry data since the connection is established.
 
 ### TCP Message Sending
 
@@ -1009,26 +1005,15 @@ Each side of the connection has its own send buffer and its own receive buffer.
 
 ### TCP Reliable Data Transfer
 
-TCP creates a reliable data transfer service on top of the unreliable service offered by IP, using a **sliding window** protocol with **cumulative ACKs** and a  single **retransmission timer**.
+TCP creates a reliable data transfer service on top of the unreliable service offered by IP, using a **sliding window** protocol with **cumulative ACKs** and a single **retransmission timer**.
 
-Retransmission is triggered by either a timeout event or duplicate ACKs, which prevent the sender from waiting for timeout expirations.
+Retransmission is triggered by either a timeout event or duplicate ACKs.  
+Since timeout values are often big, a sender may want to **fast retransmit** a packet, when it realizes the packet may have been lost.
+Because ACKs are cumulative, if a receiver sees duplicate ACKs for the same packet, it will know the sender is receiving out-of-order packets.
 
-Because a sender often sends a large number of segments back to back, if one segment is lost, there will likely be many back-to-back duplicate ACKs.
-If the TCP sender receives three duplicate ACKs for the same data, it takes this as an indication that the segment following the segment that has been ACKed three times has been lost.
-In the case that three duplicate ACKs are received, the TCP sender performs a **fast retransmit**, retransmitting the missing segment before that segment’s timer expires.
+If a TCP sender receives three duplicate ACKs for the same data, it takes this as an indication that the segment following the ACKed segment has been lost and immediately retransmits such packet.
 
-// TODO: review and rethink this
-
-#### Go-Back-N or Selective Repeat?
-
-TCP acknowledgment is cumulative, thus making it similar to GBN.
-Nevertheless, it does buffer out-of-order segments and does not need retransmission of all packets that succeed one that didn't reach the sender.
-
-A proposed modification to TCP, the so-called selective acknowledgment , allows a TCP receiver to acknowledge out-of-order segments selectively rather than just cumulatively acknowledging the last correctly received, in-order segment.
-
-In the end, TCP’s error-recovery mechanism is probably best categorized as a hybrid of GBN and SR protocols.
-
-#### RTT Estimation and Timeout
+#### RTT Estimation and Timeout Value
 
 TCP estimates the RTT from sample RTT according to the formula
 
@@ -1061,16 +1046,14 @@ However, as soon as a segment is received and $\text{EstimatedRTT}$ is updated, 
 
 TCP provides flow control by having the sender maintain a variable called the **receive window**.
 Informally, the receive window is used to give the sender an idea of how much free buffer space is available at the receiver.
-
-// TODO: adapt this after above changes
+A sender may never send more bytes than those avaliable at the other end's buffer.
 
 ### TCP Connection Closure
 
 When a host wants to close a TCP connection, it sends a segment with the FIN bit set.
 The corresponding host sends a response with the ACK bit set, acknowledging the intention to close the connection.
 It further sends a similar segment with the FIN bit set, to which the closure initiator responds with an acknowledgment as well.
-
-// TODO: It probably deallocates stuff
+After these messages are exchanged, all the resources in the two hosts are deallocated.
 
 ## Principles of Congestion Control
 
@@ -1092,10 +1075,7 @@ There are two broad approaches to congestion control:
 
 ### Classic TCP Congestion Control
 
-// TODO: review this after reviewing reliability
-
-TCP limits a sender's rate by having a variable, the **congestion window** (`cwnd`), that limits the amount of unacknowledged bytes that a client might send into the network.
-This limits the client's sending rate at $\frac{\text{cwnd}}{\text{RTT}}$.
+TCP limits a sender's rate by having a variable, the **congestion window** (`cwnd`), that limits the amount of unacknowledged bytes that a client might send into the network (limitting the client's sending rate at $\frac{\text{cwnd}}{\text{RTT}}$).
 The value of `cwnd` is adjusted by the sender in function of the perceived network congestion.
 
 TCP uses the following guiding principles:
@@ -1325,12 +1305,12 @@ If no server is present on the subnet, a DHCP relay agent (typically a router) t
 
 Obtaining an IP address through DHCP is a 4-step process:
 
-- Host broadcasts a **DHCP discover** message, to find a DHCP server.
-- DHCP server responds with a **DHCP offer** message, where it provides the host with an IP address that it can use.
-- Host requests such IP address through a **DHCP request** message (which is also broadcasted).
+- Host sends a **DHCP discover** message, to find a DHCP server.
+- DHCP responds with a **DHCP offer** message, where it provides the host with an IP address that it can use.
+- Host requests such IP address through a **DHCP request** message.
 - DHCP server confirms that the host can start using such IP address through a **DHCP ACK** message.
 
-// TODO: check this
+Every of the aforementioned DHCP are broadcasted.
 
 On the DHCP offer message, the DHCP server includes a **lease time** - the amount of time that the host is allowed to use that IP address.  
 If, after some time, the host wants to keep using the IP address, it can renew it.
@@ -1363,8 +1343,6 @@ NAT is controversial because it:
   Technical solutions to these problems include **NAT traversal** tools.
 
 ### IPv6
-
-// TODO: review this
 
 In the early 1990s, the Internet Engineering Task Force began an effort to develop a successor to the IPv4 protocol.  
 A prime motivation for this effort was the realization that the 32-bit IPv4 address space was beginning to be used up.
@@ -1415,13 +1393,11 @@ We highlight that the following fields disappeared from IPv4 to IPv6:
   That is, just as TCP or UDP protocol headers can be the next header within an IP packet, so too can an options field.
   The removal of the options field results in a fixed-length, 40-byte IP header.
 
-// TODO: casting cenas
-
 #### Transitioning from IPv4 to IPv6
 
 How can the public Internet, which is based on IPv4, be transitioned to IPv6?
 The problem is that while new IPv6-capable systems can be made backward-compatible, that is, can send, route, and receive IPv4 datagrams, already deployed IPv4-capable systems are not capable of handling IPv6 datagrams.  
-One option would be to declare a flag day—a given time and date when all Internet machines would be turned off and upgraded from IPv4 to IPv6.
+One option would be to declare a flag day - a given time and date when all Internet machines would be turned off and upgraded from IPv4 to IPv6.
 This is impossible on an Internet with billions of connected devices.
 Another solution would be to translate IPv6 headers to IPv4 headers, but this would imply some loss of information.
 
