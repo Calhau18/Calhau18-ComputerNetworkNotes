@@ -1197,11 +1197,12 @@ QUIC thus is able to establish connections much faster.
 
 # Chapter 4: The Network Layer
 
-The **Network Layer** is responsible for transporting segments from sending to receiving host.
-The sending side encapsulates transport layer segments into **datagrams**, and the receiving side extracts such segments and delivers it to the transport layer.
+The **Network Layer** is responsible for transporting segments from sending to receiving host.  
+The sending side encapsulates transport layer segments into **datagrams**, and the receiving side extracts such segments and delivers it to the transport layer.  
 Network layer protocols are implemented in *every host* and router.
 
 The Network Layer can be split into two interacting parts:
+
 - the **data plane** determines the *per-router* functions in the network layer that determine how a datagram moves from a router's **input link** to it's **output link**. This is called **forwarding**.
 - the **control plane** determines the *network-wide* logic that controls how a datagram is routed among routers along an end-to-end path from the source host to the destination host. This is called **routing**.
 
@@ -1209,33 +1210,56 @@ A key element in every network router is its **forwarding table**.
 A router forwards a packet by examining the value of one or more fields in the arriving packet’s header, and then using these header values to index into its forwarding table.
 The value stored in the forwarding table entry for those values indicates the outgoing link interface at that router to which that packet is to be forwarded.
 
-The content of a forwarding table is determined by the routing algorithm.
-Traditionally, a routing algorithm would run on every single router and it would communicate with other router's algorithm.
-Alternitavely, **Software-Defined Networking (SDN)** is often used, where the routing a **remote controller** determines a routing algorithm, and communicates it to the routers, distributing forwarding tables.
-The remote controller might be implemented in a remote data center with high reliability and redundancy, and might be managed by the ISP or some third party.
+The content of a forwarding table is determined by the routing algorithm.  
+Traditionally, a routing algorithm would run on every single router and it would communicate with other router's algorithm.  
+Alternatively, **Software-Defined Networking (SDN)** is often used, where a **remote controller** determines a routing algorithm, and communicates it to the routers, distributing forwarding tables.
 
 ## The Internet Protocol (IP)
 
 ### IPv4 Datagram
 
 The key fields in the IPv4 datagram are the following:
-- **Version number**: specify the IP protocol in use, allowing the router to determine how to interpret the remainder of the IP datagram.
-- **Header length**: because an IPv4 datagram can contain a variable number of options, 4 bits are needed to determine where the payload actually begins.
-- **Type of service**: allow different types of IP datagrams to be distinguished from each other (for example, real-time datagrams from non-real-time traffic).
-- **Datagram length**: total length of the IP datagram (header plus data), measured in bytes. Since this field is 16 bits long, the theoretical maximum size of the IP datagram is 65,535 bytes. However, datagrams are rarely larger than 1500 bytes.
-- **Identifier, flags, fragmentation offset**: these three fields have to do with so-called IP fragmentation, when a large IP datagram is broken into several smaller IP datagrams which are then forwarded independently to the destination, where they are reassembled
-- **Time-to-live**: ensure that datagrams do not circulate forever in the network. This field is decremented by one each time the datagram is processed by a router, being dropped if it reaches 0.
-- **Protocol**: indicates the specific transport-layer protocol to which the data portion of this IP datagram should be passed.
-- **Header checksum**: aids a router in detecting bit errors in a received IP datagram.
+- **Version number**: 
+  Specify the IP protocol in use, allowing the router to determine how to interpret the remainder of the IP datagram.
+- **Header length**:
+  Because an IPv4 datagram can contain a variable number of options, 4 bits are needed to determine where the payload actually begins.
+- **Type of service**:
+  Allow different types of IP datagrams to be distinguished from each other (for example, real-time datagrams from non-real-time traffic).
+- **Datagram length**:
+  Total length of the IP datagram (header plus data), measured in bytes.
+  Since this field is 16 bits long, the theoretical maximum size of the IP datagram is 65,535 bytes.
+  However, datagrams are rarely larger than 1500 bytes.
+- **Identifier, flags, fragmentation offset**:
+  These three fields have to do with so-called IP fragmentation, when a large IP datagram is broken into several smaller IP datagrams which are then forwarded independently to the destination, where they are reassembled.
+- **Time-to-live**:
+  Used to ensure that datagrams do not circulate forever in the network.
+  This field is decremented by one each time the datagram is processed by a router, being dropped if it reaches 0.
+- **Protocol**:
+  Indicates the specific transport-layer protocol to which the data portion of this IP datagram should be passed.
+- **Header checksum**:
+  Aids a router in detecting bit errors in a received IP datagram.
 - **Source and destination IP addresses**.
-- **Options**: allow an IP header to be extended. Header options were meant to be used rarely—hence the decision to save overhead by not including the information in options fields in every datagram header. However, the mere existence of options does complicate matters—since datagram headers can be of variable length, one cannot determine a priori where the data field will start. Also, since some datagrams may require options processing and others may not, the amount of time needed to process an IP datagram at a router can vary greatly. These considerations become particularly important for IP processing in high- performance routers and hosts.
+- **Options**:
+  Allow an IP header to be extended.
+  Header options were meant to be used rarely - hence the decision to save overhead by not including the information in options fields in every datagram header.
+  However, the mere existence of options does complicate matters - since datagram headers can be of variable length, one cannot determine a priori where the data field will start.
+  Also, since some datagrams may require options processing and others may not, the amount of time needed to process an IP datagram at a router can vary greatly.
+  These considerations become particularly important for IP processing in high-performance routers and hosts.
 - **Data (payload)**.
 
 ![IPv4 datagram format](./figs/ipv4_datagram.png)
 
 #### Fragmentation
 
-// TODO
+The size of a data link framed is limited by a value, known as the **maximum transmission Unit (MTU)**.
+Therefore, frequently, large transport-layer segments may need to be **fragmented** into smaller chunks in order to be sent down to the link layer.  
+Moreover, each network may have a different MTU value.
+Therefore, it's necessary that a datagram may be fragmented when needed.
+
+The solution presented by IP is to keep a fragmentation offset that indicates the number of the previous fragment's bytes.
+In order to allow addressing of the whole spectre of possible datagram length values with only 13 bits, the fragmentation field registers bytes in multiples of $8 = 2^3$.
+
+With the fragmentation offsets and the length of the payload, a receiver can easily reassemble the original segment.
 
 ### IPv4 Addressing
 
@@ -1244,9 +1268,9 @@ These addresses are typically written in so-called dotted-decimal notation (for 
 
 Every **interface** (connection between host/router and physical link) on every host and router in the global Internet must have an IP address that is globally unique.
 That means, for example, that a router has several IP addresses associated with it.
-This makes sense as the router's function is to allow hosts on different subnets (also called an IP network or simply network) to communicate.
-A **subnet** is a set of device interfaces that can physically reach each other without passing through a router.
-These are assigned an address, sometimes known as a **subnet mask**, of the form 223.1.1.0/24 where the /24 indicates that the leftmost 24 bits of the IP address shall be the same for every host on that subnet.
+This makes sense as the router's function is to allow hosts on different **subnets** (also called an IP network or simply network) to communicate.  
+A subnet is a set of device interfaces that can physically reach each other without passing through a router.
+These are assigned an address, sometimes known as a **subnet mask**, of the form a.b.c.d/x where the /x indicates that the leftmost x bits of the IP address shall be the same for every host on that subnet.
 
 The Internet’s address assignment strategy is known as **Classless Interdomain Routing (CIDR)**, which generalizes the notion of subnet addressing.
 As with subnet addressing, the 32-bit IP address is divided into two parts and again has the dotted-decimal form a.b.c.d/x, where x indicates the number of bits in the first part of the address.
@@ -1261,19 +1285,27 @@ This ability to use a single prefix to advertise multiple networks is often refe
 
 Note that getting an IP address from an ISP means that, if an organization wants to change ISP, it needs to change IP.
 Actually, this problem is circumvented by informing the organization's new ISP to advertise the organization's subnet (on top of it's own IP).
-For this solution to work, every router must always opt for the most specific subnet on it's forwarding table.
+For this solution to work, every router must always *opt for the most specific subnet on it's forwarding table*.
 
 Before CIDR was adopted, the network portions of an IP address were constrained
 to be 8, 16, or 24 bits in length, an addressing scheme known as **classful addressing**.
 
-An organization can obtain a block of IP addresses for use within an organization’s subnet by contacting it's ISP, which would provide addresses from a larger block of addresses that had already been allocated to the ISP.
+An organization can obtain a block of IP addresses for use within an organization’s subnet by contacting it's ISP, which would provide addresses from a larger block of addresses that had already been allocated to the ISP.  
 The ISPs themselves obtain their address blocks from the **Internet Corporation for Assigned Names and Numbers (ICANN)**.
 The role of the ICANN is to:
-- allocate IP addresses;
-- manage DNS root servers;
-- assigning domain names and resolving domain name disputes.
 
-### DHCP: Dynamic Host Configuration Protocol
+- Allocate IP addresses.
+- Manage DNS root servers.
+- Assigning domain names and resolving domain name disputes.
+
+### ICMP: The Internet Control Message Protocol
+
+The Internet Control Message Protocol (ICMP) is used by hosts and routers to communicate network-layer information to each other.  
+The most typical use of ICMP is for error reporting.  
+ICMP is often considered part of IP, but architecturally it lies just above IP, as ICMP messages are carried inside IP datagrams.
+ICMP messages have a type and a code field, and contain the header and the first 8 bytes of the IP datagram that caused the ICMP message to be generated.
+
+## DHCP: Dynamic Host Configuration Protocol
 
 Once an organization has obtained a block of addresses, it can assign individual IP addresses to the host and router interfaces in its organization.
 A system administrator will typically manually configure the IP addresses into the router.
@@ -1283,7 +1315,7 @@ DHCP allows a host to obtain (be allocated) an IP address automatically.
 A network administrator can configure DHCP so that a given host receives the same IP address each time it connects to the network, or a host may be assigned a temporary IP address that will be different each time the host connects to the network.
 
 Because of DHCP’s ability to automate the network-related aspects of connecting a host into a network, it is often referred to as a **plug-and-play** or **zeroconf** (zero-configuration) protocol. 
-This capability makes it very attractive to the network administrator who would otherwise have to perform these tasks manually!
+This capability makes it very attractive to the network administrator who would otherwise have to perform these tasks manually.
 DHCP is also enjoying widespread use in networks where hosts join and leave the network frequently.
 
 DHCP is a client-server protocol.
@@ -1292,31 +1324,27 @@ In the simplest case, each subnet will have a DHCP server.
 If no server is present on the subnet, a DHCP relay agent (typically a router) that knows the address of a DHCP server for that network is needed.
 
 Obtaining an IP address through DHCP is a 4-step process:
-- Host broadcasts **DHCP discover** message, to find a DHCP server;
-- DHCP server responds with **DHCP offer** message, where it provides the host with an IP address that it can use;
-- Host requests such IP address through a **DHCP request** message;
+
+- Host broadcasts a **DHCP discover** message, to find a DHCP server.
+- DHCP server responds with a **DHCP offer** message, where it provides the host with an IP address that it can use.
+- Host requests such IP address through a **DHCP request** message (which is also broadcasted).
 - DHCP server confirms that the host can start using such IP address through a **DHCP ACK** message.
 
-On the DHCP offer message, the DHCP server includes a **lease time** - the amount of time that the host is allowed to use that IP address.
+// TODO: check this
+
+On the DHCP offer message, the DHCP server includes a **lease time** - the amount of time that the host is allowed to use that IP address.  
 If, after some time, the host wants to keep using the IP address, it can renew it.
-For this, the host only needs to send the DHCP request message, to which the server will reply with DHCP ACK, informing the client that it's lease has been extended.
+For this, the host only needs to send the DHCP request message, to which the server will reply with DHCP ACK, informing the client that it's lease has been extended.  
 The client should try and renew it's lease after 50% of the lease time has passed (T1 time). 
 If this first time, it should try again after 85% of the lease time has passed (T2 time).
 When the lease time expires, the client should stop using the leased address.
 
 It is important to note that DHCP is an **application layer protocol**.
 
-### ICMP: The Internet Control Message Protocol
+## Network Address Translation (NAT)
 
-The Internet Control Message Protocol (ICMP) is used by hosts and routers to communicate network-layer information to each other.
-The most typical use of ICMP is for error reporting.
-ICMP is often considered part of IP, but architecturally it lies just above IP, as ICMP messages are carried inside IP datagrams.
-ICMP messages have a type and a code field, and contain the header and the first 8 bytes of the IP datagram that caused the ICMP message to be generated.
-
-### Network Address Translation (NAT)
-
-With the proliferation of small office and home office subnets, it would seem that whenever one of these wants to install a LAN to connect multiple machines, a range of addresses would need to be allocated by the ISP to cover all IP devices.
-If the subnet grew bigger, a larger block of addresses would have to be allocated.
+With the proliferation of small office subnets, it would seem that whenever one of these wants to install a LAN to connect multiple machines, a range of addresses would need to be allocated by the ISP to cover all IP devices.
+If the subnet grew bigger, a larger block of addresses would have to be allocated.  
 **Network Address Translation (NAT)**, however, provides a simple solution to assign IP addresses inside a private subnet.
 
 NAT works by assigning to all interfaces within a private network an address with the subnet mask 10.0.0.0/24. 
@@ -1328,35 +1356,64 @@ Whenever a host with a private address wants to send a message to outside it's s
 The router can also forward packets arriving to the correct hosts by using a **NAT translation table** and including port numbers and IP addresses in the table entries.
 
 NAT is controversial because it:
+
 - Is a network layer protocol and changes information on the transport layer, such as port numbers.
-- Violates end-to-end principle, as an application designer might need to take NAT into account when designing it's application. For example, server processes wait for incoming requests at well-known port numbers and peers in a P2P protocol need to accept incoming connections when acting as servers. Technical solutions to these problems include **NAT traversal** tools.
+- Violates end-to-end principle, as an application designer might need to take NAT into account when designing it's application.
+  For example, server processes wait for incoming requests at well-known port numbers and peers in a P2P protocol need to accept incoming connections when acting as servers.
+  Technical solutions to these problems include **NAT traversal** tools.
 
 ### IPv6
 
-In the early 1990s, the Internet Engineering Task Force began an effort to develop a successor to the IPv4 protocol.
-A prime motivation for this effort was the realization that the 32-bit IPv4 address space was beginning to be used up, with new subnets and IP nodes being attached to the Internet (and being allocated unique IP addresses) at a breathtaking rate.
+// TODO: review this
+
+In the early 1990s, the Internet Engineering Task Force began an effort to develop a successor to the IPv4 protocol.  
+A prime motivation for this effort was the realization that the 32-bit IPv4 address space was beginning to be used up.
 To respond to this need for a large IP address space, a new IP protocol, IPv6, was developed.
 The designers of IPv6 also took this opportunity to tweak and augment other aspects of IPv4, based on the accumulated operational experience with IPv4.
 
 The most important changes introduced in IPv6 are:
-- **Expanded addressing capabilities**: IP address size increases from 32 to 128 bits.
-- **A streamlined 40-byte header**: a number of IPv4 fields have been dropped or made optional. The resulting 40-byte fixed-length header allows for faster processing of the IP datagram by a router.
-- **Flow labeling**: “labeling of packets belonging to particular flows for which the sender requests special handling, such as a non-default quality of service or real-time service.”
+
+- **Expanded addressing capabilities**: 
+  IP address size increases from 32 to 128 bits.
+- **A streamlined 40-byte header**: 
+  A number of IPv4 fields have been dropped or made optional.
+  The resulting 40-byte fixed-length header allows for faster processing of the IP datagram by a router.
+- **Flow labeling**: 
+  “labeling of packets belonging to particular flows for which the sender requests special handling, such as a non-default quality of service or real-time service.”
 
 The IPv6 datagram contains the following fields:
-- **Version**: 4-bit field identifies the IP version number.
-- **Traffic class**: 8-bit traffic class field, like the TOS field in IPv4, can be used to give priority to certain datagrams.
-- **Next header**: identifies the protocol to which the contents of this datagram will be delivered (for example, to TCP or UDP).
-- **Hop limit**: like TTL, the contents of this field are decremented by one by each router that forwards the datagram. If the hop limit count reaches zero, a router must discard that datagram.
+
+- **Version**:
+  4-bit field identifies the IP version number.
+- **Traffic class**:
+  8-bit traffic class field, like the TOS field in IPv4, can be used to give priority to certain datagrams.
+- **Next header**:
+  Identifies the protocol to which the contents of this datagram will be delivered (for example, to TCP or UDP).
+- **Hop limit**: 
+  Like TTL, the contents of this field are decremented by one by each router that forwards the datagram.
+  If the hop limit count reaches zero, a router must discard that datagram.
 - **Source and destination addresses**.
 - **Data**.
 
 ![IPv6 datagram format](./figs/ipv6_datagram.png)
 
 We highlight that the following fields disappeared from IPv4 to IPv6:
-- **Fragmentation/reassembly**: IPv6 does not allow for fragmentation and reassembly at intermediate routers; these operations can be performed only by the source and destination. If an IPv6 datagram received by a router is too large to be for- warded over the outgoing link, the router simply drops the datagram and sends a “Packet Too Big” ICMP error message (see Section 5.6) back to the sender. The sender can then resend the data, using a smaller IP datagram size. Fragmentation and reassembly is a time-consuming operation; removing this functionality from the routers and placing it squarely in the end systems considerably speeds up IP forwarding within the network.
-- **Header checksum**. Because the transport-layer (for example, TCP and UDP) and link-layer (for example, Ethernet) protocols in the Internet layers perform check- summing, the designers of IP probably felt that this functionality was sufficiently redundant in the network layer that it could be removed. Once again, fast processing of IP packets was a central concern.
-- **Options**. An options field is no longer a part of the standard IP header. However, it has not gone away. Instead, the options field is one of the possible next headers pointed to from within the IPv6 header. That is, just as TCP or UDP protocol headers can be the next header within an IP packet, so too can an options field. The removal of the options field results in a fixed-length, 40-byte IP header.
+
+- **Fragmentation/reassembly**:
+  IPv6 does not allow for fragmentation and reassembly at intermediate routers - these operations can be performed only by the source and destination.
+  If an IPv6 datagram received by a router is too large the router simply drops the datagram and sends a "Packet Too Big" ICMP error message back to the sender.
+  Removing this functionality from the routers and placing it squarely in the end systems considerably speeds up IP forwarding within the network.
+
+- **Header checksum**:
+  Because the transport-layer and link-layer protocols in the Internet layers perform checksumming, the designers of IP probably felt that this functionality was sufficiently redundant in the network layer that it could be removed.
+  Once again, fast processing of IP packets was a central concern.
+
+- **Options**: 
+  An options field is no longer a part of the standard IP header.
+  However, it has not gone away.
+  Instead, the options field is one of the possible next headers pointed to from within the IPv6 header.
+  That is, just as TCP or UDP protocol headers can be the next header within an IP packet, so too can an options field.
+  The removal of the options field results in a fixed-length, 40-byte IP header.
 
 // TODO: casting cenas
 
@@ -1376,20 +1433,37 @@ A solution is to just take the IPv6 datagram, encapsulate it with a IPv4 header,
 
 A routing algorithm is often looking for the **least-cost path** from a host to another on the network graph.
 This graph has the network's routers as vertices and the physical links between routers as edges.
-Of course the cost of an edge depends on the task that we want to perform.
+The cost of an edge depends on the task that we want to perform.
 It might for example, depend bandwidth, delay time, monetary cost, etc.
 
 A routing algorithm might be:
-- **centralized** or **global**: the algorithm takes the connectivity between all nodes and all link costs as inputs. The calculation can be run at one site or replicated in every router.
-- **decentralized**: the calculation of the least-cost path is carried out in an iterative, distributed manner by the routers. No node has complete information about the costs of all network links. Instead, each node begins with only the knowledge of the costs of its own directly attached links. Then, through an iterative process of calculation and exchange of information with its neighboring nodes, a node gradually calculates the least-cost path to a destination or set of destinations.
+
+- **Centralized** or **Global**: 
+  The algorithm takes the connectivity between all nodes and all link costs as inputs.
+  The calculation can be run at one site or replicated in every router.
+
+- **Decentralized**: 
+  The calculation of the least-cost path is carried out in an iterative, distributed manner by the routers.
+  No node has complete information about the costs of all network links.
+  Instead, each node begins with only the knowledge of the costs of its own directly attached links.
+  Then, through an iterative process of calculation and exchange of information with its neighboring nodes, a node gradually calculates the least-cost path to a destination or set of destinations.
 
 A routing algorithm can also be classified as:
-- **static**: routes change very slowly over time, often as a result of human intervention.
- - **dynamic**: the routing paths change as the network traffic loads or topology change. While dynamic algorithms are more responsive to network changes, they are also more susceptible to problems such as routing loops and route oscillation.
+
+- **Static**: 
+  Routes change very slowly over time, often as a result of human intervention.
+
+- **Dynamic**:
+  The routing paths change as the network traffic loads or topology change.
+  While dynamic algorithms are more responsive to network changes, they are also more susceptible to problems such as routing loops and route oscillation.
 
  Finally, we also differentiate between algorithms that are:
- - **load-sensitive**: link costs vary dynamically to reflect the current level of congestion in the underlying link.
- - **load-insensitive**: a link’s cost does not explicitly reflect its current (or recent past) level of congestion.
+
+ - **Load-sensitive**:
+  Link costs vary dynamically to reflect the current level of congestion in the underlying link.
+
+ - **Load-insensitive**:
+  A link’s cost does not explicitly reflect its current (or recent past) level of congestion.
 
 ### Link State (LS) Routing Algorithm
 
@@ -1398,21 +1472,44 @@ This algorithm then uses Dijkstra's algorithm to compute the least-cost path fro
 
 ### Distance Vector (DV) Routing Algorithm
 
-The **Distance Vector (DV)** routing algorithm is a decentralized algorithm. It is:
-- **distributed**: each node receives some information from one or more of its directly attached neighbors, performs a calculation, and then distributes the results of its calculation back to its neighbors.
-- **iterative**: the algorithm goes on until no more information is exchanged between neighbors.
-- **asynchronous**: it does not require all of the nodes to operate in lockstep with each other.
+The **Distance Vector (DV)** routing algorithm is a decentralized algorithm.
+It is:
+
+- **Distributed**:
+  Each node receives some information from one or more of its directly attached neighbors, performs a calculation, and then distributes the results of its calculation back to its neighbors.
+
+- **Iterative**: 
+  The algorithm goes on until no more information is exchanged between neighbors.
+
+- **Asynchronous**:
+  It does not require all of the nodes to operate in lockstep with each other.
 
 It consists on an application of the Bellman-Ford algorithm to the network graph.
 
-// TODO: understand count to infinity problem and poisoned reverse solution
+It is important to pay attention to the **count-to-infinity** problem.
+In de distance vector tables of each node, there is a column for each neighbour of such node.
+Now, the best route from a node A through a node B to a node C, may be by going back to B (A->B->A->C, for example).
+Now suppose the cost the link between A and C is significantly increased, such that A is convinced that routing through B is the best option (again, this "best" route is believed to be A->B->A->C).
+B, still believes that the best route is through A, thus directs packets there.
+The routing of packets in this link thus gets caught in a loop, which (depending on the cost of the A-B link), may be slow to catch up with the increase of the A-C link.
+
+A solution for this problem is adding **poised reverse**.
+The idea is simple - if A routes through B to get to destination C, then A will advertise to B that its distance to C is infinity.
+This prevents nodes from "sending back packets", but does not present any solution for loops of more than two nodes.
 
 ### Comparison of LS and DV
 
 We observe the following differences:
-- Message complexity: the LS algorithm requires $O(NE)$ messages to be sent (every node must broadcast it's forwarding table), while the DV algorithm only requires exchanges between neighbours.
-- Speed of Convergence: the LS algorithm converges in $O(N^2)$ while the DV algorithm's convergence time varies (may temporarily have routing loops and suffers from the count to infinity problem).
-- Robustness: the LS algorithm is more robust, as each node only calculates the cost of a link, making failures more isolated. The DV algorithm, however, computes path's costs, meaning that errors can propagate through the network.
+
+- Message complexity:
+  The LS algorithm requires $O(NE)$ messages to be sent (every node must broadcast it's forwarding table), while the DV algorithm only requires exchanges between neighbours.
+
+- Speed of Convergence:
+  The LS algorithm converges in $O(N^2)$ while the DV algorithm's convergence time varies (may temporarily have routing loops and suffers from the count to infinity problem).
+
+- Robustness: 
+  The LS algorithm is more robust, as each node only calculates the cost of a link, making failures more isolated.
+  The DV algorithm, however, computes path's costs, meaning that errors can propagate through the network.
 
 ## Routing in the Internet
 
@@ -1420,32 +1517,38 @@ We observe the following differences:
 
 The above algorithms viewed the network was a collection of connected indistinguishable routers.
 However, this model is impractical for two important reasons: 
-- **Scale**: with hundreds of millions of routers in the internet, the above algorithms would require enormous amounts of time and memory to work;
-- **Administrative autonomy**: each ISP generally wants to operate its network as it pleases, or to hide aspects of its network's internal organization from the outside.
+
+- **Scale**:
+  With hundreds of millions of routers in the internet, the above algorithms would require enormous amounts of time and memory to work.
+
+- **Administrative autonomy**:
+  Each ISP generally wants to operate its network as it pleases, or to hide aspects of its network's internal organization from the outside.
 
 Both of these problems can be solved by organizing routers into **autonomous systems (ASs)**, with each AS consisting of a group of routers that are under the same administrative control.
 Often the routers in an ISP, and the links that interconnect them, constitute a single AS but some ISPs partition their network into multiple ASs.
-Every router in the same AS runs the same **intra-autonomous system routing protocol**.
+Every router in the same AS runs the same **intra-autonomous system routing protocol**, and has a **gateway router** that is responsible for directing links to routers in other ASs.
 
 Hierarchical routing thus works as follows:
 When a host wants to send a message to another host, it sends the message to the AS, who then forwards it to the destination network, who can finally reach the destination host.
 
-// TODO
+With hierarchical routing, the forwarding tables can be considerably smaller, and their values must be configured by both intra- and inter-AS routing algorithms.  
+Namely, when an AS receives a datagram with a destination outside its scope, it needs to figure out.
+In order to do so, the AS needs an inter-AS routing protocol to be aware of "its surroundings".
 
 ### Intra-AS Routing
 
 Intra-AS routing protocols are also known as **Interior Gateway Protocols (IGP)**. 
 The most common ones are:
-- **RIP**: Routing Information Protocol;
-- **OSPF**: Open Shortest Path First;
+
+- **RIP**: Routing Information Protocol.
+- **OSPF**: Open Shortest Path First.
 - **IGRP**: Interior Gateway Routing Protocol (Cisco proprietary).
 
 #### Routing Information Protocol (RIP)
 
-The RIP is a DV algorithm that uses the number of hops (routers along the way) as the distance metric.
-It sets a maximum distance of 15 hops for any message.
+The RIP is a DV algorithm that uses the number of hops (routers along the way) as the distance metric, setting a maximum distance of 15 hops for any message.  
 The routers exchange distance vectors every 30 seconds, via response messages, also called **advertisement**.
-Each advertisement lists up to 25 destination subnets within the AS.
+Each advertisement lists up to 25 destination subnets within the AS.  
 If no advertisement is heard from a router after 180 seconds, it's declared dead and any route via such router is invalidated.
 The remaining nodes (starting by the dead node's neighbours) start advertising the event, and eventually the link failure propagates to the entire network.
 
@@ -1461,10 +1564,24 @@ OSPF advertisements are contained in OSPF messages that are carried directly by 
 Thus, the OSPF protocol must itself implement functionality such as reliable message transfer and link-state broadcast.
 
 OSPF offers the following features:
-- **Security**: all OSPF messages are authenticated, preventing malicious intrusion.
-- **Multiple same-cost paths**: OSPF allows multiple same-cost paths to be chosen.
-- **Integrated support for unicast and multicast routing**: Multicast OSPF (MOSPF) provides simple extensions to OSPF to provide for multicast routing. MOSPF uses the existing OSPF link database and adds a new type of link-state advertisement to the existing OSPF link-state broadcast mechanism.
-- **Support for hierarchy within a single AS**: An OSPF autonomous system can be configured hierarchically into areas. Each area runs its own OSPF link-state routing algorithm, with each router in an area broadcasting its link state to all other routers in that area. Within each area, one or more area border routers are responsible for routing packets outside the area. Lastly, exactly one OSPF area in the AS is configured to be the backbone area. The primary role of the backbone area is to route traffic between the other areas in the AS. The backbone always contains all area border routers in the AS and may contain non-border routers as well. Inter-area routing within the AS requires that the packet be first routed to an area border router (intra-area routing), then routed through the backbone to the area border router that is in the destination area, and then routed to the final destination.
+
+- **Security**:
+  All OSPF messages are authenticated, preventing malicious intrusion.
+
+- **Multiple same-cost paths**:
+  OSPF allows multiple same-cost paths to be chosen.
+
+- **Integrated support for unicast and multicast routing**:
+  Multicast OSPF (MOSPF) provides simple extensions to OSPF to provide for multicast routing.
+
+- **Support for hierarchy within a single AS**:
+  An OSPF autonomous system can be configured hierarchically into areas.
+  Each area runs its own OSPF link-state routing algorithm, with each router in an area broadcasting its link state to all other routers in that area.
+  Within each area, one or more area border routers are responsible for routing packets outside the area.  
+  Exactly one OSPF area in the AS is configured to be the backbone area.
+  The primary role of the backbone area is to route traffic between the other areas in the AS.
+  The backbone always contains all area border routers in the AS and may contain non-border routers as well.
+  Inter-area routing within the AS requires that the packet be first routed to an area border router (intra-area routing), then routed through the backbone to the area border router that is in the destination area, and then routed to the final destination.
 
 ### Inter-AS Routing
 
@@ -1474,30 +1591,39 @@ In the current Internet, the protocol used is known as the **Border Gateway Prot
 ### Border Gateway Protocol (BGP)
 
 As an inter-AS routing protocol, BGP provides each router a means to:
+
 - Obtain prefix reachability information from neighboring ASs.
 - Determine the "best" routes to the prefixes.
 
 For each AS, each router is either a gateway router or an internal router.
-A gateway router is a router on the edge of an AS that directly connects to one or more routers in other ASs.
-An internal router connects only to hosts and routers within its own AS.
 
 In BGP, pairs of routers exchange routing information over semi-permanent TCP connections.
-Each such TCP connection, along with all the **BGP messages** sent over the connection, is called a **BGP connection**.
+Each such TCP connection, along with all the **BGP messages** sent over the connection, is called a **BGP connection**.  
 Furthermore, a BGP connection that spans two ASs is called an **external BGP (eBGP)** connection, and a BGP session between routers in the same AS is called an **internal BGP (iBGP)** connection.
 There is typically one eBGP connection for each link that directly connects gateway routers in different ASs.  
 Note that iBGP connections do not always correspond to physical links.
 
 BGP messages can be of the following types:
-- **OPEN**: opens TCP connection to remote BGP peer and authenticates sending BGP peer;
-- **UPDATE**: advertises new path (or withdraws old);
-- **KEEPALIVE**: keeps connection alive in absence of UPDATES. Also ACKs OPEN request;
-- **NOTIFICATION**: reports errors in previous messages or closes connection.
+
+- **OPEN**: 
+  Opens TCP connection to remote BGP peer and authenticates sending BGP peer.
+- **UPDATE**: 
+  Advertises new path (or withdraws old).
+- **KEEPALIVE**: 
+  Keeps connection alive in absence of UPDATES. 
+  Also ACKs OPEN request.
+- **NOTIFICATION**: 
+  Reports errors in previous messages or closes connection.
 
 When a router advertises a prefix across a BGP connection, it includes with the prefix several **BGP attributes**.
 In BGP jargon, a prefix along with its attributes is called a **route**.
 Two of the more important attributes are:
-- **AS-PATH**: contains the list of ASs through which the advertisement has passed. To generate the AS-PATH value, when a prefix is passed to an AS, the AS adds its ASN to the existing list in the AS-PATH. BGP routers also use the AS-PATH attribute to detect and prevent looping advertisements.
-- **NEXT-HOP**: the IP address of the router interface that begins the AS-PATH.
+- **AS-PATH**:
+  Contains the list of ASs through which the advertisement has passed.
+  To generate the AS-PATH value, when a prefix is passed to an AS, the AS adds its ASN to the existing list in the AS-PATH.
+  BGP routers also use the AS-PATH attribute to detect and prevent looping advertisements.
+- **NEXT-HOP**:
+  The IP address of the router interface that begins the AS-PATH.
 
 #### Hot Potato Routing
 
@@ -1510,7 +1636,7 @@ Therefore, the steps for adding an outside-AS prefix in a router’s forwarding 
 
 #### Route-Selection Algorithm
 
-In practice, BGP uses an algorithm that is more complicated than hot potato routing, but nevertheless incorporates hot potato routing.
+In practice, BGP uses an algorithm that is more complicated than hot potato routing, but nevertheless incorporates hot potato routing.  
 For any given destination prefix, the input into BGP’s route-selection algorithm is the set of all routes to that prefix that have been learned and accepted by the router.
 If there are two or more routes to the same prefix, then BGP sequentially invokes the following elimination rules until one route remains:
 1. A route is assigned a local preference value as one of its attributes. The value of the local preference attribute is a policy decision that is left entirely up to the AS’s network administrator. The routes with the highest local preference values remain.
@@ -1525,65 +1651,135 @@ Typically, any traffic flowing across an ISP’s backbone network must have eith
 ### IP-Anycast
 
 In many applications, we are interested in 
-- replicating the same content on different servers in many different dispersed geographical locations; 
-- having each user access the content from the server that is closest.
+- Replicating the same content on different servers in many different dispersed geographical locations.
+- Having each user access the content from the server that is closest.
 
-BGP’s route-selection algorithm provides an easy and natural mechanism for doing so.
-During the IP-anycast configuration stage, an entity with multiple servers can assign the same IP address to each of its servers, and uses standard BGP to advertise this IP address from each of the servers. 
+BGP’s route-selection algorithm provides an easy and natural mechanism for doing so.  
+During the IP-anycast configuration stage, an entity with multiple servers can assign the same IP address to each of its servers, and uses standard BGP to advertise this IP address from each of the servers.  
 When a BGP router receives multiple route advertisements for this IP address, it treats these advertisements as providing different paths to the same physical location (when, in fact, the advertisements are for different paths to different physical locations).
 When configuring its routing table, each router will locally use the BGP route-selection algorithm to pick the “best” route to that IP address.
 
 CDNs generally choose not to use IP-anycast because BGP routing changes can result in different packets of the same TCP connection arriving at different instances of the Web server.
 However, it is extensively used to direct DNS queries to the closest root DNS server.
 
-// TODO: broadcasting, multicasting, spanning trees
+### Broadcast Routing
+
+When a sender wants to broadcast a datagram to, say, all other nodes in a subnet, it could deliver, consequently, as many packets as there are nodes in the subnet.
+However, this would be inefficient as the sender would have to determine how many nodes are in the network, and would mandate much more transmission from every node involved in the process.
+
+In practice, what happens is that nodes **flood** broadcast packets.
+This can be done in some different ways:
+- **Flooding**:
+  When a node receives a broadcast packet, it just sends a copy to all neighbours.
+  This has the problem of leading to cycles and a lot of unnecessary transmission.
+- **Controlled Flooding**:
+  A node keeps track of the packet IDs it has already broadcasted, and only floods a packet if it hasn't before.
+  Alternatively, a node may forward a packet only if it arrived on the shortest path from the source (thus preventing cycles).
+- **Spanning Tree**:
+  Organizes the network in a tree, so that no redundant packet is received by any node.
+
+### Multicast Routing
+
+We say a packet is **multicasted** when it is addressed to multiple devices simultaneously.
+We say that this set of devices forms a **multicast** group.
+
+Multicasting can be done in several ways:
+- Multicast emulation:
+  Then sender establishes a unicast session with each of the destinations and sends the packet on each session.
+- Multicast in the application layer:
+  End systems build a multicast logical tree on top of the network.
+- Multicast in the network layer:
+  Routers build **multicast trees** and forward packets along such three.
+
+Two components are needed for network-layer multicast in the Internet:
+- A multicast group membership discovery protocol.
+  In the Internet, the **Internet Group Management Protocol (IGMP)** is used for IPv4, and the **Multicast Listener Discovery (MLD)** protocol is used for IPv6.
+- A multicast routing protocol.
+
+In the Internet Group Management Protocol, all destinations in a multicast group are assigned the same IP address, on top of their own unicast IP address.  
+The IGMP operates between the hosts and their edge routers, with each end system informing the corresponding router to which multicast groups it wants to belong.
+
+#### Building Multicast Trees
+
+Algorithms for building multicast trees can be:
+
+- **Source-based**: 
+  Every node establishes its own tree.
+  Two common approaches are:
+
+  - **Shortest Path Tree**:  
+    The sending node uses Dijkstra's algorithm to establish the tree with shortest pah to all receivers.
+  - **Reverse Path Forwarding**:  
+    Every node floods a receiving packet if and only if it arrives on the shortest path from the source.  
+    If the resulting forwarding tree contains subtrees with no mulitcast group members, downstream nodes will send upstream **"prune" messages** informing that there is no need to keep transmiting the multicast packet.
+
+- **Group-shared**: 
+  A single tree is used by the whole group, with one router identified as the center.  
+  In order to join the tree, an edge router sends an unicast *join-msg* addressed to the center router.
+  The intermediate routers process and forward the message towards the center.
+  The route taken by this message is set as the branch of tree for this router.
+
+An example of a multicast routing protocol in the Internet is the **Distance Vector Multicast Routing Protocol (DVMRP)**.
+It uses a source-based, reverse path forwarding tree.
+
+// TODO: PIM and stuff?
 
 # Chapter 5: The Link Layer and LANs
 
 In this chapter we'll refer to any device that runs a link-layer protocol as a **node**.
 Nodes include hosts, routers, switches, and WiFi access points.
 We will also refer to the communication channels that connect adjacent nodes along the communication path as links.
+
 Any link-layer protocol provides the basic service of transporting a datagram from a node to another.
 However, different protocols may or may not offer the following services:
-- **Framing**: Almost all link-layer protocols encapsulate each network-layer datagram within a **link-layer frame** before transmission over the link.
-- **Link Access**: A medium access control (MAC) protocol specifies the rules by which a frame is transmitted onto the link. For point-to-point links that have a single sender at one end of the link and a single receiver at the other end of the link, the MAC protocol is simple. The more interesting case is when multiple nodes share a single broadcast link—the so-called multiple access problem.
-- **Reliable Delivery**: When a link-layer protocol provides reliable delivery service, it guarantees to move each network-layer datagram across the link without error. A link-layer reliable delivery service is often used for links that are prone to high error rates, such as a wireless link, with the goal of correcting an error locally, rather than forcing an end-to-end retransmission of the data by a transport- or application-layer protocol. However, link-layer reliable delivery can be considered an unnecessary overhead for low bit-error links, including fiber, coax, and many twisted-pair copper links.
-- **Error Detection and Correction**: Error detection in the link layer is usually more sophisticated and is implemented in hardware.
-- **Flow Control**: To adjust pace between adjacent sending and receiving nodes;
-- **Half-Duplex and Full-Duplex Links**: With half duplex, nodes at both ends of link can transmit, but not at the same time.
 
-The Ethernet capabilities of a host are either integrated into the motherboard chipset or implemented via a low-cost dedicated Ethernet chip.
-For the most part, the link layer is implemented on a chip called the **network adapter**, also sometimes known as a **network interface controller (NIC)**.
-The network adapter implements many link layer services including framing, link access, error detection, and so on. Thus, much of a link-layer controller’s functionality is implemented in hardware.
+- **Framing**: 
+  Almost all link-layer protocols encapsulate each network-layer datagram within a **link-layer frame** before transmission over the link.
+- **Link Access**:
+  A **medium access control (MAC)** protocol specifies the rules by which a frame is transmitted onto the link.
+- **Reliable Delivery**: 
+  Often used for links that are prone to high error rates, such as a wireless link, with the goal of correcting an error locally.
+- **Error Detection and Correction**: 
+  Error detection in the link layer is usually more sophisticated and is implemented in hardware.
+- **Flow Control**: 
+  To adjust pace between adjacent sending and receiving nodes;
+- **Half-Duplex and Full-Duplex Links**: 
+  With half duplex, nodes at both ends of link can transmit, but not at the same time, while full duplex links allow both nodes to transmit simultaneously.
 
-On the sending side, the controller takes a datagram that has been created and stored in host memory by the higher layers of the protocol stack, encapsulates the datagram in a link-layer frame (filling in the frame’s various fields), and then transmits the frame into the communication link, following the link-access protocol.  
-On the receiving side, a controller receives the entire frame, and extracts the network-layer datagram. If the link layer performs error detection, then it is the sending controller that sets the error-detection bits in the frame header and it is the receiving controller that performs error detection.
+For the most part, the link layer is implemented on a chip in the motherboard called the **network adapter**, also sometimes known as a **network interface controller (NIC)**.
+
+On the sending side, the controller takes a datagram, encapsulates it in a link-layer frame, and then transmits it into the communication link.  
+On the receiving side, a controller receives the entire frame, extracts the network-layer datagram and sends it to the upper layers. 
 
 ## Link-Layer Addressing and ARP
 
 Every node with a network interface has a link layer address.
 A host or router with multiple network interfaces will thus have multiple link-layer addresses associated with it, just as it would also have multiple IP addresses associated with it.
 A link-layer address is variously called a **LAN address**, a **physical address**, or a **MAC address**.
-For most LANs, the MAC address is 6 bytes long, giving 248 possible MAC addresses.
+For most LANs, the MAC address is 6 bytes long, giving $2^{48}$ possible MAC addresses.
 These 6-byte addresses are typically expressed in hexadecimal notation, with each byte of the address expressed as a pair of hexadecimal numbers.  
+
 No two adapters have the same address.
 The MAC address space is managed by the IEEE, who guarantees that no two companies are manufacturing adapters with equivalent addresses.
 The IEEE does this by selling batches of $2^{24}$ addresses for a nominal fee: it fixes the first 24 bits of a MAC address and lets a company create unique combinations of the last 24 bits for each adapter.  
+
 An adapter’s MAC address has a flat structure (as opposed to a hierarchical structure) and doesn’t change no matter where the adapter goes.
 
-When an adapter wants to send a frame to some destination adapter, the sending adapter inserts the destination adapter’s MAC address into the frame and then sends the frame into the LAN.
+When an adapter wants to send a frame to some destination adapter, the sending adapter inserts the destination adapter’s MAC address into the frame and then sends the frame into the LAN.  
 When an adapter receives a frame, it will check to see whether the destination MAC address in the frame matches its own MAC address.
 If there is a match, the adapter extracts the enclosed datagram and passes the datagram up the protocol stack.
-If not, the adapter discards the frame.
+If not, the adapter discards the frame.  
 Sometimes, a sending adapter want all the other adapters on the LAN to receive and process the frame it is about to send. 
 In this case, the sending adapter inserts a special MAC **broadcast address**: FF-FF-FF-FF-FF-FF into the destination address field of the frame.
 
 ### Address Resolution Protocol (ARP)
 
 The job of the **Address Resolution Protocol (ARP)** is to translate between IP addresses and MAC addresses.
-For this, each host and router has an **ARP table** in it's memory, which contains mappings of IP addresses to MAC addresses.
-The ARP table also contains a time-to-live (TTL) value, which indicates when each mapping will be deleted from the table.
-Note that a table does not necessarily contain an entry for every host and router on the subnet; some may have never been entered into the table, and others may have expired.
+For this, each node has an **ARP table** in it's memory, which contains mappings of IP addresses to MAC addresses.  
+
+Naturally, an ARP table will then have, in each of its entries, an IP address of a node in the LAN, and the corresponding MAC address.
+It also contains a time-to-live (TTL) value, which indicates when each mapping will be deleted from the table.  
+A table does not necessarily contain an entry for every host and router on the subnet; some may have never been entered into the table, and others may have expired.
 If a host does not contain in it's ARP table the mapping for a particular IP, it sends an **ARP packet** to all other hosts and routers on the subnet, querying them for the mapping of the IP address required.
 
 Note that no configuration from a network manager is required for the ARP protocol.
@@ -1592,16 +1788,18 @@ After a host leaves the network, it's MAC address will eventually expire from th
 
 ### Sending a Datagram off the Subnet
 
-When a host wants to communicate with host outside it's subnet, it does the following:
-1. Create an IP datagram with it's source IP and the destination's destination IP;
-2. Realise that the destination is outside the subnet, using the subnet's mask;
-3. Determine the router it should send the datagram to, using a network-layer protocol;
-4. Find out that router's MAC address, using ARP;
+When a host wants to communicate with another host outside it's subnet, it does the following:
+
+1. Create an IP datagram with it's source IP and the destination's destination IP.
+2. Realise that the destination is outside the subnet, using the subnet's mask.
+3. Determine the router it should send the datagram to, using a network-layer protocol.
+4. Find out that router's MAC address, using ARP.
 5. Encapsulate the datagram in a link-layer frame with that router's MAC address as the destination MAC address.
 
 Any router along the way will do the following:
-1. Receive the link-layer frame and extract the datagram;
-2. Analyze the IP on the datagram and determine where to route the datagram using a network-layer protocol;
+
+1. Receive the link-layer frame and extract the datagram.
+2. Analyze the IP on the datagram and determine where to route the datagram using a network-layer protocol.
 3. Encapsulate the datagram in a link-layer frame with that node's MAC address as the destination MAC address.
 
 The destination host will just receive the link-layer frame, extract the datagram, understand that the message has reached it's destination, and send the payload to the upper layers.
@@ -1613,15 +1811,16 @@ We examine three techniques for detecting errors in the transmitted data.
 ### Parity Checks
 
 Sender adds a **parity bit** which can be calculated by xoring every bit in the message.
-The parity bit implies that the message (together with the parity bit) should always be even (or odd, implementation choice).  
-The receiver needs only to check if the parity of the message (xoring all bits) is 0.
+The parity bit implies that the xoring of the message (together with the parity bit) should always be even (or odd, implementation choice).  
+The receiver needs only to check this.
+
 Parity bit error detection can only detect an even number of bit errors.
 It is resilient enough for situations where bit errors are unlikely, meaning that the probability of multiple errors occurring in the same packet would be very small.
 However, it has been observed that frequently, errors occur in "bursts".
 
 One could generalize parity check by organizing the packet's bits into a grid and performing a parity check for each line and column.
 With this system, when an error occurs on a bit in the grid, both the corresponding line and column parity bits will be wrong, allowing not only error detection but also error correction.
-Two-dimensional parity can also detect (but not correct!) any combination of two errors in a packet.
+Two-dimensional parity can also detect (but not correct) any combination of two errors in a packet.
 
 The ability of the receiver to both detect and correct errors is known as **forward error correction (FEC)**.
 
@@ -1635,7 +1834,7 @@ Checksumming methods require relatively little packet overhead, but they provide
 An error-detection technique used widely in today’s computer networks is based on **cyclic redundancy check (CRC) codes**, also known as **polynomial codes**.
 CRC codes operate as follows:
 - The sender and destination must agree on a $r+1$ bit pattern $G$, known as a **generator**, with a leading 1. Standards are set for 8-, 12-, 16-, and 32-bit generators.
-- The sender must find a $r$ bit value $R$ such that the data $D$, with $R$ appended to it, divides $G$. The value $R$ can be computed through the following operation:
+- The sender must find a $r$ bit value $R$ such that the data $D$, with $R$ appended to it, is divided by $G$. The value $R$ can be computed through the following operation:
 $$
 R = D \times 2^r (\text{mod } G)
 $$
@@ -1649,15 +1848,16 @@ Checksumming methods are more often used on higher layers since the probability 
 
 There are two types of network links:
 - A **point-to-point** link consists of a single sender at one end of the link and a single receiver at the other end of the link.
-- A **broadcast link**, can have multiple sending and receiving nodes all connected to the same, single, shared broadcast channel.
+- A **broadcast link** can have multiple sending and receiving nodes all connected to the same, single, shared broadcast channel.
 
 The **multiple access problem** asks how to coordinate the access of multiple sending and receiving nodes to a shared broadcast channel.
 **Multiple access protocols** present solutions on how nodes can regulate their transmissions into the shared broadcast channel.
 
 Ideally, a multiple access protocol for a broadcast channel of rate $R$ bits per second should have the following desirable characteristics:
+
 1. When only one node has data to send, that node has a throughput of $R$ bps.
-2. When $M$ nodes have data to send, each of these nodes has a throughput of $R/M$ bps. This need not necessarily imply that each of the $M$ nodes always has an instantaneous rate of $R/M$, but rather that each node should have an average transmission rate of $R/M$ over some suitably defined interval of time.
-3. The protocol is decentralized; that is, there is no master node that represents a single point of failure for the network.
+2. When $M$ nodes have data to send, each of these nodes has an average throughput of roughly $R/M$ bps. 
+3. The protocol is decentralized.
 4. The protocol is simple, so that it is inexpensive to implement.
 
 ### Channel Partitioning Protocols
@@ -1667,16 +1867,21 @@ This is appealing because it eliminates collisions and is perfectly fair: Each n
 However, it has a major drawback: a node is limited to an average rate of $R/N$ bps even when it is the only node with packets to send.
 
 We mention three channel partitioning protocols:
-- **Time Division Multiple Access (TDMA)**: the partitioning is made in the time each node is allowed to transmit messages. TDMA divides time into **frames**, which are subdivided into **slots**. Each transmitter is assigned a slot per frame.
-- **Frequency Division Multiple Access (FDMA)**: the partitioning is made in the frequency each node is allowed to transmit messages in.
-- **Code Division Multiple Access (CDMA)**: each node is assigned a nod, which is then used by the nodes to encode the data bits they send. If the codes are chosen carefully, CDMA networks have the wonderful property that different nodes can transmit simultaneously and yet have their respective receivers correctly receive a send- er’s encoded data bits in spite of interfering transmissions by other nodes.
+
+- **Time Division Multiple Access (TDMA)**: 
+  The partitioning is made in the time each node is allowed to transmit messages.
+  TDMA divides time into **frames**, which are subdivided into **slots**.
+  Each transmitter is assigned a slot per frame.
+- **Frequency Division Multiple Access (FDMA)**: 
+  The partitioning is made in the frequency each node is allowed to transmit messages in.
+- **Code Division Multiple Access (CDMA)**:
+  Each node is assigned a nod, which is then used by the nodes to encode the data bits they send.
+  If the codes are chosen carefully, CDMA networks have the wonderful property that different nodes can transmit simultaneously and yet have their respective receivers correctly receive a sender’s encoded data bits in spite of interfering transmissions by other nodes.
 
 ### Random Access Protocols
 
-The second broad class of multiple access protocols are random access protocols.
 In a random access protocol, a transmitting node always transmits at the full rate of the channel, namely, $R$ bps.
 When there is a collision, each node involved in the collision repeatedly retransmits its frame after a random amount of time until its frame gets through without a collision.
-Because the random delays are independently chosen, it is possible that one of the nodes will pick a delay that is sufficiently less than the delays of the other colliding nodes and will therefore be able to sneak its frame into the channel without a collision.
 
 #### Slotted ALOHA
 
@@ -1687,39 +1892,85 @@ In our description of slotted ALOHA, we assume the following:
 - The nodes are synchronized so that each node knows when the slots begin.
 - If two or more frames collide in a slot, then all the nodes detect the collision event before the slot ends.
 
-Let $p$ be a probability. The operation of slotted ALOHA in each node is simple:
+Let $p$ be a probability a node transmits at any given time frame. 
+The operation of slotted ALOHA in each node is simple:
+
 - When the node has a fresh frame to send, it waits until the beginning of the next slot and transmits the entire frame in the slot.
 - If there isn’t a collision, the node has successfully transmitted its frame. 
-- If there is a collision, the node detects the collision before the end of the slot. The node retransmits its frame in each subsequent slot with probability p until the frame is transmitted without a collision.
+- If there is a collision, the node detects the collision before the end of the slot. 
+  The node retransmits its frame in each subsequent slot with probability $p$ until the frame is transmitted without a collision.
 
 Slotted ALOHA, though simple, has a few disadvantages.
 When there are multiple active nodes, a certain fraction of the slots will either have collisions or be empty (no node transmits in that slot).
-The slots in which exactly one node transmits is said to be a **successful slot**.
-The **efficiency** of a slotted multiple access protocol is defined to be the long-run fraction of successful slots in the case when there are a large number of active nodes, each always having a large number of frames to send.
-For a slotted ALOHA protocol, we can calculate the efficiency to be, as the number of nodes approaches infinity $\frac{1}{e}$, which is approximately 37%.
+The slots in which exactly one node transmits is said to be a **successful slot**.  
+The **efficiency** of a slotted multiple access protocol is defined to be the long-run fraction of successful slots in the case when there are a large number of active nodes, each always having a large number of frames to send.  
+For a slotted ALOHA protocol, we can calculate the maximum efficiency to be, as the number of nodes approaches infinity $\frac{1}{e}$, which is approximately 37%.
 
 #### ALOHA
 
 The slotted ALOHA protocol required that all nodes synchronize their transmissions to start at the beginning of a slot.
 The first ALOHA protocol was actually an unslotted, fully decentralized protocol.
-In pure ALOHA, when a frame first arrives , the node immediately transmits the frame in its entirety into the broadcast channel.
-If a transmitted frame experiences a collision, the node will then immediately retransmit the frame with probability $p$.
-Otherwise, the node waits for a frame transmission time.
-After this wait, it then transmits the frame with probability $p$, or waits (remaining idle) for another frame time with probability $1–p$.
+
+In pure ALOHA, when a frame first arrives, the node immediately transmits the frame in its entirety into the broadcast channel.
+If a transmitted frame experiences a collision, the node iteratively either:
+
+- retransmits the frame with probability $p$;
+- waits for a frame transmission time with probability $1-p$.
 
 Using the same assumptions as the slotted case, the maximum efficiency for pure ALOHA can be found to be only $\frac{1}{2e}$, exactly half that of the slotted ALOHA.
 
 #### Carrier Sense Multiple Access (CSMA)
 
-Carrier Sense Multiple Access (CSMA) and CSMA with collision detection (CSMA/CD) protocols embody two rules:
-- **Carrier Sensing**: a node listens to the channel before transmitting. If a frame from another node is currently being transmitted into the channel, a node then waits until it detects no transmissions for a short amount of time and then begins transmission.
-- **Collision Detection**: a transmitting node listens to the channel while it is transmitting. If it detects that another node is transmitting an interfering frame, it stops transmitting and waits a random amount of time before repeating the sense-and-transmit-when-idle cycle.
+**Carrier Sense Multiple Access (CSMA)** protocol is based on the rule *"Listen before speaking"*. 
+In networking terms, this property is called **carrier sensing**: a node listens to a channel before transmitting into such channel.
+If a frame from another node is currently being transmitted, the node will wait until it detects no transmissions.
 
-The end-to-end **channel propagation delay** of a broadcast channel - the time it takes for a signal to propagate from one of the nodes to another - will play a crucial role in determining its performance.
+This protocol does not avoid collisions due to **channel propagation**: a node is not able to detect transmission from a source as soon as it starts transmitting: it must wait for the transmission to cross the link until it reaches the node.
 
-**Carrier Sense Multiple Access with Collision Detection (CSMA/CD)**
+CSMA can be:
+- **Persistent**: a waiting station starts transmission as soon it detects an idle channel.
+- **Non-persistent**: a waiting station schedules frame transmission for a future, randomly chosen time when it detects an idle channel.
 
-// TODO
+**CSMA with Collision Detection (CSMA/CD)**  
+The **CSMA with Collision Detection (CSMA/CD)** protocol combines the CSMA rationale with the rule *"If someone else is talking, stop talking."*.
+In networking terms, this property is called **collision detection** and dictates that a node must stop transmitting if it detects that another node is also transmitting.
+
+When it detects some other node is transmitting, a sending node assumes it is likely that the data it is sending is/will become corrupted, and stops transmitting after a **collision detection** or **abort** time.  
+Since CSMA/CD is a random access protocol, it waits a random amount of time until it tries retransmission of a packet for which collision was detected.
+
+The **binary exponential backoff** algorithm is a possible solution for how to determine the amount of time to wait before retransmission.
+The algorithm goes as follows:
+When transmitting a frame that has already experienced $n$ collisions, a node chooses a value $K$ at random from $\{0,1,2, \cdots , 2^n-1\}$ and determines the retransmission time in function of $K$.
+There should be a cap on the value of $n$ in order to prevent the blocking of certain nodes.
+
+The Ethernet protocol uses a CSMA/CD protocol with binary exponential backoff, retransmitting frames after $512 K$ bit transmission times, with a cap set on $n=10$.
+
+**CSMA with Collision Avoidance (CSMA/CA)**  
+There is still a variant of CSMA called **CSMA with Collision Avoidance (CSMA/CA)**, used for broadcast channels where two different transmitting nodes may not be able to listen to each other, namely wireless networks.
+In this context, sensing the channel for collisions is not as relevant, as there may be colliding senders that cannot be sensed.
+
+In order to be confident that another node is not sending, a node always waits a short period of time called **Distributed Inter-frame Space (DIFS)** before transmitting.
+If the channel is idle during that time, the station starts transmission.
+Otherwise, the station chooses a random backoff value using binary exponential backoff.  
+After waiting for a DIFS time period, the station count down the value chosen when the channel is idle, with the counter being frozen whenever the channel is sensed busy.
+The packet is retransmitted when the counter reaches 0.  
+If an acknowledgment is received, the transmitting station knows that its frame has been correctly received at the destination station and may send another frame it has pending.
+Otherwise, the station will try retransmitting the packet.
+
+The acknowledgment message is very relevant in this protocol, as it is used often in channels with high error rates.
+Just like a sender must wait DIFS time before sending a frame, a receiver needs to wait a **Short Inter-frame Spacing (SIFS)** before sending the ACK.
+
+Alternatively to the DIFS/SIFS method, a sender may try to reserve a channel rather than randomly try to access it without collisions.
+A sender can do this through a **Request-To-Send (RTS)** message, which should be small enough to make the probability of collision with another message almost 0.  
+The host responds with a **Clear-To-Send (CTS)** message, which needs to be just as small.
+This message informs all nodes that the channel is busy receiving the message from the selected sender.  
+After the transmission is completed, the receiver broadcasts an ACK message, to both inform the sender it has received the message, but also other possible senders that the channel is clear.
+
+The RTS/CTS provides a solution for stations that cannot listen to each other.
+Nevertheless, and even though it can help reduce collisions, it also introduces delay and consumes channel resources, being only used (if at all) for the transmission of a long frames.
+In practice, frames are usually not big enough to justify the delay introduced by this process.
+
+The WiFi protocol uses a CSMA/CA protocol.
 
 ### Taking-Turns Protocols
 
@@ -1741,13 +1992,13 @@ However, if a failure occurs on some node, some recovery process must be launche
 
 ## Ethernet
 
-Throughout the 1990s, Ethernet LAN's used a coaxial bus to interconnect the nodes.  
-Ethernet with a bus topology is a broadcast LAN - all transmitted frames travel to and are processed by all adapters connected to the bus.
+Throughout the 1990s, Ethernet LAN's used a coaxial bus to interconnect the nodes.
+
 By the late 1990s, a hub-based star topology started prevailing.
 In such an installation the hosts (and routers) are directly connected to a hub with twisted-pair copper wire.
-A **hub** is a physical-layer device that acts on individual bits rather than frames.
-When a bit, representing a zero or a one, arrives from one interface, the hub simply re-creates the bit, boosts its energy strength, and transmits the bit onto all the other interfaces.
-Thus, Ethernet with a hub-based star topology is also a broadcast LAN.  
+A **hub** is a physical-layer device that acts on individual bits rather than frames, simply re-transmitting any bit that it gets with boosted energy strength onto all the other interfaces.
+Thus, Ethernet with a hub-based star topology is also a broadcast LAN.
+
 In the early 2000s the hub at the center of this topology was replaced with a **switch**.
 
 The Ethernet frame has the following fields:
@@ -1758,58 +2009,110 @@ The Ethernet frame has the following fields:
 - **Cyclic redundancy check (CRC)** (4 bytes): allows error detection.
 - **Preamble** (8 bytes): Each of the first 7 bytes of the preamble has a value of 10101010; the last byte is 10101011. The first 7 bytes of the preamble serve to “wake up” the receiving adapters and to synchronize their clocks to that of the sender’s clock.
 
+An image of the Ethernet frame can be found below.
+
 All of the Ethernet technologies provide unreliable and connectionless service to the network layer.
 It uses the CSMA/CD multiple access protocol with exponential binary backoff.
 
 It is worth noting that Ethernet is not a single protocol standard but rather a set of technologies that come in many flavors.
 
-## Link-Layer Switches
+## Link-Layer Switches and Local Access Networks (LANs)
 
 The role of the **switch** is to receive incoming link-layer frames and forward them onto outgoing links.
 The switch does this in a **transparent** way - the sender and receiver of a message are always unaware that it is intercepted by a switch.  
 Switches have a forwarding table whose entries contain:
-- a MAC address;
-- the switch interface that leads towards that MAC address;
-- the time at which the entry was placed in the table.
+
+- A MAC address.
+- The switch interface that leads towards that MAC address.
+- The time at which the entry was placed in the table.
 
 Whenever it receives a packet with a certain destination MAC address and from the interface $x$, it makes the following decision:
-- If there is no entry in the table with the given address, the switch broadcasts a copy of the frame through all it's interfaces, except $x$;
+
+- If there is no entry in the table with the given address, the switch broadcasts a copy of the frame through all it's interfaces, except $x$.
 - If there is an entry with the given address, the switch forwards the frame through the corresponding interface, except if that interface is $x$, in which case the switch discards the frame.
 
 The forwarding table is built automatically, dynamically, and autonomously.
 In other words, switches are **self-learning**.
 This capability is accomplished as follows:
+
 - The switch table is initially empty.
 - For each incoming frame received on an interface, the switch stores in its table (1) the MAC address in the frame’s source address field, (2) the interface from which the frame arrived, and (3) the current time.
 - The switch deletes an address in the table if no frames are received with that address as the source address after some period of time (the **aging time**).
 
+### Spanning Tree Protocols
+
+Networks often introduce redundant links between switches to overcome the failure or congestion of links.
+These connections, however, introduce physical loops into the network.
+These loops are problematic since switches flood traffic out all ports when the destination is unknown.
+Without any mechanism, these frames will loop forever.
+
+This is usually solved by allowing physical loops, but creating loop free logical topology, through a **spanning-tree protocol**.  
+
+The Spanning-Tree Protocol establishes a root node, called the **root bridge**.
+Furthermore, every node (in this context we refer to nodes as **bridges**) as unique 8 byte **bridge ID**.
+The bridge ID is the bridge's MAC address, preceded by two bytes, called the **priority bytes**.
+
+For each bridge, there is **root port** which is responsible for the reception/transmission of frames from/to the root bridge.
+Similarly, we define a **designated bridge** and a **designated port** as the (respectively) bridge and port that, for some given LAN, is responsible for directing frames from/to the root bridge.
+
+Each bridge has an associated **Root Path Cost**, equal to the sum of the costs from the ports that transmit frames towards the root bridge in the least cost path to the root bridge.
+The root port (for a bridge) and the designated port (for a LAN) are the ports that provide the best path to the root.
+The **active ports** in a bridge are the root port and the designated ports.
+The remaining ports stay **inactive** or **blocked**.
+
+#### Bridge Protocol Data Unit (BPDU)
+
+The Spanning Tree Protocol requires network devices to exchange messages to detect bridging loops.
+The protocol used in the formation of a loop free logical topology is called the **Bridge Protocol Data Unit (BPDU)**.  
+The BPDU message has four fields:
+
+- The first field has the root bridge number (or the bridge ID of who the sending bridge believes is the root).
+- The second field has the root path cost for the sending bridge.
+- The third field has the bridge ID of the sending bridge.
+- The four field has the port the sending bridge used to send the BPDU.
+
+On startup, all bridges assume they are the root and try to convince other bridges of that by sending the BPDU `(X, 0, X, p)` for a bridge `X` sending a BPDU on port `p`.
+A bridge will accept another BPDU if it is less than the last accepted BPDU, with comparison's being done in lexicographical order.
+In that case, the bridge will adapt it's belief on who the root is, and keep the received BPDU for future comparisons.
+
+The whole network will thus eventually agree that the root with the lowest bridge ID is the root.
+Note that no two bridges can have the same bridge ID, since they all have different MAC addresses.
+The two priority bytes may be adjusted by a network administrator in order to influence the root decision process.
+
+Bridges will also opt for the path with lowest cost to the root due to the comparison on the second field of the BPDU messages.
+BPDU messages are sent every two seconds (by default), so that the spanning tree may be updated to link failures, new root path costs, or new bridges joining the network.
+For the same reason, BPDUs need to be received on all ports, even blocked ones.
+
 ### Switches vs. Routers
 
+Switches and routers are different and perform different functions.
+Namely:
+
 Switches:
-- pros:
-  - plug-and-play;
-  - high forwarding rate, since they only need to process frames up to layer 2;
-- cons:
-  - topology restricted to spanning tree, in order to prevent cycling of frames;
-  - a large switched network would require large ARP tables and generate substantial ARP traffic and processing;
-  - susceptible to broadcast storms.
+- Pros:
+  - Plug-and-play;
+  - High forwarding rate, since they only need to process frames up to layer 2.
+- Cons:
+  - Topology restricted to spanning tree, in order to prevent cycling of frames;
+  - A large switched network would require large ARP tables and generate substantial ARP traffic and processing;
+  - Susceptible to broadcast storms.
 
 Routers:
-- pros:
-  - because network addressing is often hierarchical, packets do not normally cycle through routers even when the network has redundant paths;
-  - provide firewall protection against layer-2 broadcast storms.
-- cons:
-  - are not plug-and-play;
-  - have a larger per-packet processing time than switches.
+- Pros:
+  - Because network addressing is often hierarchical, packets do not normally cycle through routers even when the network has redundant paths;
+  - Provide firewall protection against layer-2 broadcast storms.
+- Cons:
+  - Are not plug-and-play;
+  - Have a larger per-packet processing time than switches.
 
-Switches suffice for small networks, as they localize traffic and increase aggregate throughput without requiring any configuration of IP addresses.
+Switches suffice for small networks, as they localize traffic and increase aggregate throughput without requiring any configuration of IP addresses.  
 But larger networks consisting of thousands of hosts typically include routers within the network, as they provide a more robust isolation of traffic, control broadcast storms, and use more “intelligent” routes among the hosts in the network.
 
-## Virtual Local Area Networks (VLANs)
+### Virtual Local Area Networks (VLANs)
 
 Switched LANs have some drawbacks:
-- **Lack of traffic isolation**;
-- **Inefficient use of switches**;
+- **Lack of traffic isolation**.
+- **Inefficient use of switches**.
 - **Managing users**.
 
 These problems are solved by using a **Virtual local area network (VLAN)**.
@@ -1819,39 +2122,17 @@ Each group constitutes a VLAN, with the ports in each VLAN forming a broadcast d
 
 A VLAN can span several physical switches as long as they are connected by **trunk links**.
 In networks with a **VLAN trunking** solution, a special port on each switch is configured as a trunk port to interconnect VLAN switches.
-The trunk port belongs to all VLANs, and frames sent to any VLAN are forwarded over the trunk link to the other switch.
+The trunk port belongs to all VLANs, and frames sent to any VLAN are forwarded over the trunk link to the other switch.  
 In order to allow a switch to know the VLAN a frame comes from, the IEEE has defined an extended Ethernet frame format, 802.1Q, for frames crossing a VLAN trunk.
 The 802.1Q frame consists of the standard Ethernet frame with a four-byte **VLAN tag** added into the header that carries the identity of the VLAN to which the frame belongs.
 The VLAN tag itself consists of:
-- a 2-byte Tag Protocol Identifier (TPID) field;
+
+- a 2-byte Tag Protocol Identifier (TPID) field.
 - a 2-byte Tag Control Information field that contains a 12-bit VLAN identifier field, and a 3-bit priority field.
 
 ![Original Ethernet frame (top), 802.1Q-tagged Ethernet VLAN frame (below)](./figs/ethernet_frame.png)
 
-### Spanning Tree Protocols
-
-Networks often introduce redundant links between switches to overcome the failure or congestion of links.
-These connections, however, introduce physical loops into the network.
-These loops are problematic since switches flood traffic out all ports when the destination is unknown.
-Without any mechanism, these frames will loop forever.
-
-This is solved by allowing physical loops, but creating loop free logical topology, through a **spanning-tree protocol**.
-The Spanning-Tree Protocol establishes a root node, called the **root bridge**.
-Furthermore, every node (in this context we refer to nodes as **bridges**) as unique 8 byte **bridge ID**.
-For each bridge, there is **root port** which is responsible for the reception/transmission of frames from/to the root bridge.
-Similarly, we define a **designated bridge** and **designated port** as the bridge and port (respectively) that are responsible for sending frames from a LAN to the root bridge and vice-versa).
-Each bridge has an associated **Root Path Cost**, equal to the sum of the costs from the ports that transmit frames towards the root bridge in the least cost path to the root bridge.
-The root port (for a bridge) and the designated port (for a LAN) are the ports that provide the best path to the root.
-The **active ports** in a bridge are the root port and the designated ports.
-The remaining ports stay inactive (blocked).
-
-The Spanning Tree Protocol requires network devices to exchange messages to detect bridging loops.
-The message that a switch/bridge sends, allowing the formation of a loop free logical topology, is called a **Bridge Protocol Data Unit (BPDU)**.
-This ensures that if an active path or device fails, a new spanning tree can be calculated.
-
-// TODO
-
-# Chapter 6: Wireless Networks
+## Wireless Networks and LANs
 
 We identify the following relevant elements in a wireless network:
 
@@ -1897,11 +2178,11 @@ Two examples of situations where this does not happen are:
   Hosts A and C are communicating, but they are not within link reach of each other.
   Host B is within link reach of both A and C, and thus would be able to route the communication.
 
-## The 802.11 Wireless LAN Protocol: WiFi
+### The 802.11 Wireless LAN Protocol: WiFi
 
 The **IEEE 802.11 wireless LAN** standard, also known as **WiFi** is the most common wireless standard in use nowadays, by some margin.
 
-### The 802.11 Wireless LAN Architecture
+#### The 802.11 Wireless LAN Architecture
 
 The fundamental building block of the 802.11 architecture is the **basic service set (BSS)**.
 A BSS contains one or more wireless stations and a central **base station**, known as an **access point (AP)**.
@@ -1926,14 +2207,10 @@ After selecting the AP with which to associate, the wireless device sends an ass
 Once associated with an AP, the device will want to join the subnet to which the AP belongs.
 Thus, the device will typically send a DHCP discovery message into the subnet via the AP in order to obtain an IP address on the subnet.
 
-### The 802.11 MAC Protocol
-
 Because multiple wireless devices, or the AP itself may want to transmit data frames at the same time over the same channel, a multiple access protocol is needed to coordinate the transmissions coordinated by an AP.
-The 802.11 standard use the **CSMA/CA** protocol (carrier sense multiple access with collision avoidance).
+The 802.11 standard uses the **CSMA/CA** protocol.
 
-// TODO: write this above
-
-### The 802.11 Frame
+#### The 802.11 Frame
 
 ![The 802.11 frame](./figs/wifi_frame.png)
 
@@ -1942,9 +2219,9 @@ Three address fields are needed for internetworking purposes - specifically, for
 - Address 1 is the MAC address of the wireless station that is to receive the frame;
 - Address 2 is the MAC address of the station that transmits the frame;
 - Address 3 is the MAC address of the router interface to which the AP is attached;
-- Address 4 is used when APs forward frames to each other in ad hoc mode.
+- Address 4 is used when APs forward frames to each other in *ad hoc* mode.
 
-### 802.11 Advanced Features
+#### 802.11 Advanced Features
 
 As we've seen before, the 802.11 standard allows for rate adaptation.
 
