@@ -1,3 +1,5 @@
+[toc]
+
 # Chapter 1: Computer Networks and the Internet
 
 ## What Is the Internet?
@@ -388,26 +390,9 @@ The choice of transport protocol and its parameters may have effects on the **re
 There are two main transport layer services that the Internet provides to the application layer:
 
 - TCP
-
-  When an application invokes TCP as its transport protocol, the application receives the following services:
-
-  - **Connection-oriented service**.
-    TCP has the client and server exchange transport-layer control information with each other before the application-level messages begin to flow.
-    After this handshaking phase, a **TCP connection** is said to exist between the sockets of the two processes.
-    The connection is a **full-duplex** connection in that the two processes can send messages to each other over the connection at the same time.
-    When the application finishes sending messages, it must tear down the connection.
-  - **Reliable data transfer service**. 
-    The communicating processes can rely on TCP to deliver all data sent without error and in the proper order.
-    When one side of the application passes a stream of bytes into a socket, it can count on TCP to deliver the same stream of bytes to the receiving socket, with no missing or duplicate bytes.
-
-  TCP also includes a congestion-control mechanism, a service for the general welfare of the Internet rather than for the direct benefit of the communicating processes.
-
+  When an application invokes TCP as its transport protocol, the application receives **connection-oriented** service with **reliable data transfer**. 
 - UDP
-
-  UDP is connectionless, so there is no handshaking before the two processes start to communicate.
-  UDP provides an unreliable data transfer service - that is, when a process sends a message into a UDP socket, UDP provides no guarantee that the message will ever reach the receiving process.
-  Furthermore, messages that do arrive at the receiving process may arrive out of order.
-  UDP does not include a congestion-control mechanism, so the sending side of UDP can pump data into the layer below (the network layer) at any rate it pleases.
+  UDP is a **connectionless**, **unreliable** data transfer service.
 
 ## The Web and HTTP
 
@@ -607,6 +592,7 @@ The DNS servers are often UNIX machines running the Berkeley Internet Name Domai
 The DNS protocol runs over UDP and uses port 53.
 
 On top of the standard translation service, DNS is also responsible for:
+
 - **Host aliasing**:
   A host with a complicated hostname can have one or more alias names.
   The original hostname is said to be a **canonical hostname**.
@@ -618,16 +604,7 @@ On top of the standard translation service, DNS is also responsible for:
   When clients make a DNS query for a name mapped to a set of addresses, the server responds with the entire set of IP addresses, but rotates the ordering of the addresses within each reply.
   Because a client typically sends its HTTP request message to the IP address that is listed first in the set, DNS rotation distributes the traffic among the replicated servers.
 
-### Overview of How DNS Works
-
-A simple design for DNS would have one DNS server that contains all the mappings.
-This has the following problems:
-- Single point of failure.
-- Traffic volume.
-- Distance to the centralized database.
-- Maintenance issues.
-
-In summary, a centralized database **doesn't scale**.
+## DNS Server Hierarchy
 
 In order to deal with the issue of scale, the DNS uses a large number of servers, organized in a hierarchical fashion and distributed around the world.  
 There are three classes of DNS servers, organized in a hierarchy:
@@ -646,7 +623,7 @@ A local DNS server does not strictly belong to the hierarchy of servers but is n
 Each ISP has a local DNS server, which acts as a proxy for any DNS communication between two hosts. 
 When a host connects to an ISP, the ISP provides the host with the IP addresses of one or more of its local DNS servers.
 
-#### DNS Queries
+## DNS Queries
 
 DNS queries can be of two types:
 
@@ -657,13 +634,13 @@ DNS queries can be of two types:
 
 Generally, the query from the requesting host to the local DNS server is recursive, while the remaining queries are iterative.
 
-#### DNS Caching
+## DNS Caching
 
 DNS extensively exploits **DNS caching** in order to improve the delay performance and to reduce the number of DNS messages ricocheting around the Internet.
 In a query chain, when a DNS server receives a DNS reply, it can cache the mapping in its local memory.
 These cache entries obviously can't be kept indefinitely: they usually disappear after some time (typically 2 days).
 
-### DNS Records
+## DNS Records
 
 The DNS servers store **resource records (RRs)**, including RRs that provide hostname-to-IP address mappings.
 Each DNS reply message carries one or more resource records.
@@ -683,7 +660,14 @@ The meaning of `Name` and `Value` depend on Type:
   Note that by using the MX record, a company can have the same aliased name for its mail server and for one of its other servers (such as its Web server).
   To obtain the canonical name for the mail server, a DNS client would query for an `MX` record; to obtain the canonical name for the other server, the DNS client would query for the `CNAME` record. 
 
-### DNS Messages
+### Inserting Records into the DNS Database
+
+When a new domain name is created, in order for it to be registered in the DNS, a **registrar** needs to verify it's uniqueness and enter it into the DNS database (collecting a fee for its services).
+When a domain name is registered, the IP addresses of it's primary and secondary authoritative DNS servers need to be provided.
+For each of these two DNS servers, the registrar would then enter into the TLD servers a Type NS and a Type A record.
+The creator should then make sure that a Type A resource record for it's Web server and the Type MX resource record for it's mail server are entered into it's authoritative DNS server.
+
+## DNS Messages
 
 There are two kinds of DNS messages: **query** and **reply** messages, and they both have the same format:
 
@@ -715,24 +699,11 @@ There are two kinds of DNS messages: **query** and **reply** messages, and they 
 
 ![DNS message format](./figs/dns_message.png)
 
-### Inserting Records into the DNS Database
-
-When a new domain name is created, in order for it to be registered in the DNS, a **registrar** needs to verify it's uniqueness and enter it into the DNS database (collecting a fee for its services).
-When a domain name is registered, the IP addresses of it's primary and secondary authoritative DNS servers need to be provided.
-For each of these two DNS servers, the registrar would then enter into the TLD servers a Type NS and a Type A record.
-The creator should then make sure that a Type A resource record for it's Web server and the Type MX resource record for it's mail server are entered into it's authoritative DNS server.
-
-### Dynamic DNS
+## Dynamic DNS
 
 Dynamic DNS is a method that allows you to notify a Domain Name Server (DNS) to change your active DNS configuration on a device such as a router or computer of its configured hostname and address.
 It is most useful when your computer or network obtains a new IP address lease and you would like to dynamically associate a hostname with that address, without having to manually enter the change every time.
 Since there are situations where an IP address can change, it helps to have a way of automatically updating hostnames that point to the new address every time.
-
-### DNS Security
-
-Some attacks that have been tried against DNS are:
-- DDoS attacks (on root or TLD servers)
-- Spoofing attacks
 
 ## Peer-to-Peer File Distribution
 
@@ -832,86 +803,13 @@ If these values differ, then there was an error (there is no procedure for recov
 
 ## Principles of Reliable Data Transfer
 
-### Building a Reliable Data Transfer Protocol
-
-#### Reliable Data Transfer over a Perfectly Reliable Channel: rdt1.0
-
-We first consider the simplest case, in which the underlying channel is completely reliable.
-The protocol in this case is trivial.
-The **finite-state machine (FSM)** definitions for the rdt1.0 sender and receiver are shown below.
-
-![rdt1.0: sending side](./figs/rtp1.0_sender_fsm.png)
-![rdt1.0: receiving side](./figs/rtp1.0_receiver_fsm.png)
-
-#### Reliable Data Transfer over a Channel with Bit Errors: rdt2.0
-
-Now we'll consider the case where bit errors might occur in an unreliable lower level communication channel.
-However, we'll continue to assume that all transmitted packets are received in the order in which they were sent.
-
-The keys for this protocol are:
-- receiver has a method of **error detection**;
-- receiver is able to send positive (**ACK**) or negative (**NAK**) **feedback** to sender;
-- sender is able to **retransmit** a packet.
-
-![rdt2.0: sending side](./figs/rtp2.0_sender_fsm.png)
-![rdt2.0: receiving side](./figs/rtp2.0_receiver_fsm.png)
-
-Note that we need to account for the possibility of corruption on the receiver feedback.
-We might handle this in the following ways:
-- Ask for the receiver to repeat the feedback. 
-  This message might however be corrupted too, and thus we'd need another message recursively;
-- Add enough checksum bits to allow the sender not only to detect, but also to recover from, bit errors.
-- Simply resend the current data packet when the sender receives a garbled feedback packet.
-  This approach, however, introduces duplicate packets into the sender-to-receiver channel. 
-  The fundamental difficulty with duplicate packets is that the receiver doesn't know whether it's feedback was received correctly at the sender. 
-  Thus, it cannot know whether an arriving packet contains new data or is a retransmission.
-  This can be solved by asking the sender to add a **sequence number** field.
-  For this simple case of a stop-and-wait protocol, a 1-bit sequence number will suffice.
-  Since we are currently assuming a channel that does not lose packets, the feedback does not need to indicate the sequence number of the packet it corresponds to.
-
-![rdt2.1: sending side](./figs/rtp2.1_sender_fsm.png)
-![rdt2.1: receiving side](./figs/rtp2.1_receiver_fsm.png)
-
-We can achieve the same functionality without using NAK.
-If the receiver sends always an ACK for the last well received packet, the sender can infer if the last packet was well received.
-Of course, now, the receiver must include the sequence number in the feedback message.
-
-![rdt2.2: sending side](./figs/rtp2.2_sender_fsm.png)
-![rdt2.2: receiving side](./figs/rtp2.2_receiver_fsm.png)
-
-#### Reliable Data Transfer over a Lossy Channel with Bit Errors: rdt3.0
-
-Suppose now that in addition to corrupting bits, the underlying channel can lose
-packets as well.
-
-One possible approach would be the sender wait until it is sure that a packet must've been lost (either the one it sent, or the response).
-The problem with this approach is that it is hard to estimate a worst-case response time, much less know for sure.
-Moreover, the protocol should ideally recover from packet loss as soon as possible.
-
-The approach thus adopted in practice is for the sender to judiciously choose a time value such that packet loss is likely, although not guaranteed, to have happened.
-If an ACK is not received within this time, the packet is retransmitted.
-This introduces the possibility of **duplicate data packets** in the sender-to-receiver channel, which can already be dealt with the functionality introduced in rdt2.2.
-
-Implementing a time-based retransmission mechanism requires a countdown timer that can
-interrupt the sender after a given amount of time has expired.
-
-![rdt3.0: sending side](./figs/rtp3.0_sender_fsm.png)
-
-### Pipelined Reliable Data Transfer Protocols
-
-The protocols seen above display very poor performance.
-In order to send a message of $L$ bits at a rate of $R$ bits/sec, the sender will only be using the sending channel $\frac{L/R}{RTT + L/R}$ of the time.
-For long distances between hosts, this can be an extremely low.
-
-To improve performance, RDT protocols use **pipelining**.
-Pipelining requires increasing the range of sequence numbers and buffering packets both at the sender and at the receiver.
-The requirements in both these aspects depend on how the protocol responds to lost, corrupted, and overly delayed packets.
+In order for them to have good performance, RDT protocols should use **pipelining**, this is, they should be able to send several packages without any guarantees that sender is receiving them (of course, this guarantee should exist at some point in time).
 
 Two basic approaches toward pipelined error recovery can be identified: **Go-Back-N** and **selective repeat**.
 These are both called **sliding window protocols** as they allow the sender to transmit up to $N$ packets without waiting for an acknowledgement.
 The value $N$ is called the **window size**.
 
-#### Go-Back-N (GBN)
+### Go-Back-N (GBN)
 
 In a **Go-Back-N (GBN)** protocol, the sender is allowed to transmit multiple packets (when available) without waiting for an acknowledgment, but is constrained to have no more than some maximum allowable number, N, of unacknowledged packets in the pipeline.  
 The receiver sends **cumulative ACKs**: if it sends an ACK with sequence number $n$, it has received every byte up to the $n$-th one.  
@@ -925,7 +823,7 @@ In our GBN protocol, the receiver discards out-of-order packets.
 This makes sense as, in the GBN protocol, if a packet is lost, every packet after it will be retransmitted, therefore making buffering useless.  
 This of course has the downside of consuming more of the network's bandwidth.
 
-#### Selective Repeat
+### Selective Repeat
 
 **Selective repeat** protocols avoid unnecessary retransmissions by having the sender retransmit only those packets that it suspects were received in error
 This individual, as-needed, retransmission will require that the receiver individually acknowledge correctly received packets.
@@ -1179,12 +1077,12 @@ QUIC thus is able to establish connections much faster.
 
 The **Network Layer** is responsible for transporting segments from sending to receiving host.  
 The sending side encapsulates transport layer segments into **datagrams**, and the receiving side extracts such segments and delivers it to the transport layer.  
-Network layer protocols are implemented in *every host* and router.
+Network layer protocols are implemented in *every host and router*.
 
 The Network Layer can be split into two interacting parts:
 
-- the **data plane** determines the *per-router* functions in the network layer that determine how a datagram moves from a router's **input link** to it's **output link**. This is called **forwarding**.
-- the **control plane** determines the *network-wide* logic that controls how a datagram is routed among routers along an end-to-end path from the source host to the destination host. This is called **routing**.
+- The **data plane** determines the *per-router* functions in the network layer that determine how a datagram moves from a router's **input link** to it's **output link**. This is called **forwarding**.
+- The **control plane** determines the *network-wide* logic that controls how a datagram is routed among routers along an end-to-end path from the source host to the destination host. This is called **routing**.
 
 A key element in every network router is its **forwarding table**.
 A router forwards a packet by examining the value of one or more fields in the arriving packet’s header, and then using these header values to index into its forwarding table.
@@ -1231,7 +1129,7 @@ The key fields in the IPv4 datagram are the following:
 
 #### Fragmentation
 
-The size of a data link framed is limited by a value, known as the **maximum transmission Unit (MTU)**.
+The size of a data link frame is limited by a value, known as the **maximum transmission Unit (MTU)**.
 Therefore, frequently, large transport-layer segments may need to be **fragmented** into smaller chunks in order to be sent down to the link layer.  
 Moreover, each network may have a different MTU value.
 Therefore, it's necessary that a datagram may be fragmented when needed.
@@ -1559,12 +1457,10 @@ OSPF offers the following features:
   The backbone always contains all area border routers in the AS and may contain non-border routers as well.
   Inter-area routing within the AS requires that the packet be first routed to an area border router (intra-area routing), then routed through the backbone to the area border router that is in the destination area, and then routed to the final destination.
 
-### Inter-AS Routing
+### Inter-AS Routing and Border Gateway Protocol (BGP)
 
 In order for devices on multiple AS to communicate, the entire Internet must use the same **inter-autonomous system routing protocol**.
 In the current Internet, the protocol used is known as the **Border Gateway Protocol (BGP)**.
-
-### Border Gateway Protocol (BGP)
 
 As an inter-AS routing protocol, BGP provides each router a means to:
 
@@ -1624,7 +1520,9 @@ Note that an ISP might not be incentivized to advertise certain routes, as other
 This is why company policy is the first criteria for route selection.
 Typically, any traffic flowing across an ISP’s backbone network must have either a source or a destination (or both) in a network that is a customer of that ISP.
 
-### IP-Anycast
+### Anycast, Broadcast, and Multicast Routing
+
+#### IP-Anycast
 
 In many applications, we are interested in 
 - Replicating the same content on different servers in many different dispersed geographical locations.
@@ -1638,7 +1536,7 @@ When configuring its routing table, each router will locally use the BGP route-s
 CDNs generally choose not to use IP-anycast because BGP routing changes can result in different packets of the same TCP connection arriving at different instances of the Web server.
 However, it is extensively used to direct DNS queries to the closest root DNS server.
 
-### Broadcast Routing
+#### Broadcast Routing
 
 When a sender wants to broadcast a datagram to, say, all other nodes in a subnet, it could deliver, consequently, as many packets as there are nodes in the subnet.
 However, this would be inefficient as the sender would have to determine how many nodes are in the network, and would mandate much more transmission from every node involved in the process.
@@ -1654,7 +1552,7 @@ This can be done in some different ways:
 - **Spanning Tree**:
   Organizes the network in a tree, so that no redundant packet is received by any node.
 
-### Multicast Routing
+#### Multicast Routing
 
 We say a packet is **multicasted** when it is addressed to multiple devices simultaneously.
 We say that this set of devices forms a **multicast** group.
@@ -1674,8 +1572,6 @@ Two components are needed for network-layer multicast in the Internet:
 
 In the Internet Group Management Protocol, all destinations in a multicast group are assigned the same IP address, on top of their own unicast IP address.  
 The IGMP operates between the hosts and their edge routers, with each end system informing the corresponding router to which multicast groups it wants to belong.
-
-#### Building Multicast Trees
 
 Algorithms for building multicast trees can be:
 
