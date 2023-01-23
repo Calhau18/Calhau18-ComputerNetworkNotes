@@ -604,9 +604,9 @@ On top of the standard translation service, DNS is also responsible for:
   When clients make a DNS query for a name mapped to a set of addresses, the server responds with the entire set of IP addresses, but rotates the ordering of the addresses within each reply.
   Because a client typically sends its HTTP request message to the IP address that is listed first in the set, DNS rotation distributes the traffic among the replicated servers.
 
-## DNS Server Hierarchy
+### DNS Server Hierarchy
 
-In order to deal with the issue of scale, the DNS uses a large number of servers, organized in a hierarchical fashion and distributed around the world.  
+In order to deal with the scalability of mantaining such a huge database, the DNS uses a large number of servers, organized in a hierarchical fashion and distributed around the world.  
 There are three classes of DNS servers, organized in a hierarchy:
 - **Root DNS servers**: 
   There are more than 1000 root servers instances scattered all over the world.
@@ -623,7 +623,7 @@ A local DNS server does not strictly belong to the hierarchy of servers but is n
 Each ISP has a local DNS server, which acts as a proxy for any DNS communication between two hosts. 
 When a host connects to an ISP, the ISP provides the host with the IP addresses of one or more of its local DNS servers.
 
-## DNS Queries
+### DNS Queries
 
 DNS queries can be of two types:
 
@@ -634,13 +634,13 @@ DNS queries can be of two types:
 
 Generally, the query from the requesting host to the local DNS server is recursive, while the remaining queries are iterative.
 
-## DNS Caching
+### DNS Caching
 
 DNS extensively exploits **DNS caching** in order to improve the delay performance and to reduce the number of DNS messages ricocheting around the Internet.
 In a query chain, when a DNS server receives a DNS reply, it can cache the mapping in its local memory.
 These cache entries obviously can't be kept indefinitely: they usually disappear after some time (typically 2 days).
 
-## DNS Records
+### DNS Records
 
 The DNS servers store **resource records (RRs)**, including RRs that provide hostname-to-IP address mappings.
 Each DNS reply message carries one or more resource records.
@@ -660,14 +660,14 @@ The meaning of `Name` and `Value` depend on Type:
   Note that by using the MX record, a company can have the same aliased name for its mail server and for one of its other servers (such as its Web server).
   To obtain the canonical name for the mail server, a DNS client would query for an `MX` record; to obtain the canonical name for the other server, the DNS client would query for the `CNAME` record. 
 
-### Inserting Records into the DNS Database
+#### Inserting Records into the DNS Database
 
 When a new domain name is created, in order for it to be registered in the DNS, a **registrar** needs to verify it's uniqueness and enter it into the DNS database (collecting a fee for its services).
 When a domain name is registered, the IP addresses of it's primary and secondary authoritative DNS servers need to be provided.
 For each of these two DNS servers, the registrar would then enter into the TLD servers a Type NS and a Type A record.
 The creator should then make sure that a Type A resource record for it's Web server and the Type MX resource record for it's mail server are entered into it's authoritative DNS server.
 
-## DNS Messages
+### DNS Messages
 
 There are two kinds of DNS messages: **query** and **reply** messages, and they both have the same format:
 
@@ -699,7 +699,7 @@ There are two kinds of DNS messages: **query** and **reply** messages, and they 
 
 ![DNS message format](./figs/dns_message.png)
 
-## Dynamic DNS
+### Dynamic DNS
 
 Dynamic DNS is a method that allows you to notify a Domain Name Server (DNS) to change your active DNS configuration on a device such as a router or computer of its configured hostname and address.
 It is most useful when your computer or network obtains a new IP address lease and you would like to dynamically associate a hostname with that address, without having to manually enter the change every time.
