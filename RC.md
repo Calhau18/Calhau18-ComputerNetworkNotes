@@ -1594,8 +1594,6 @@ Algorithms for building multicast trees can be:
 An example of a multicast routing protocol in the Internet is the **Distance Vector Multicast Routing Protocol (DVMRP)**.
 It uses a source-based, reverse path forwarding tree.
 
-// TODO: PIM and stuff?
-
 # Chapter 5: The Link Layer and LANs
 
 In this chapter we'll refer to any device that runs a link-layer protocol as a **node**.
